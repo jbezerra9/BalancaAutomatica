@@ -1,0 +1,183 @@
+object FPesqcad: TFPesqcad
+  Left = 405
+  Top = 308
+  ClientHeight = 307
+  ClientWidth = 665
+  Color = 15395562
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  KeyPreview = True
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnActivate = FormActivate
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnKeyDown = FormKeyDown
+  PixelsPerInch = 96
+  TextHeight = 13
+  object pnlDadoAdicional: TPanel
+    Left = 0
+    Top = 260
+    Width = 665
+    Height = 47
+    Align = alBottom
+    BevelOuter = bvNone
+    BorderWidth = 4
+    Color = 10778447
+    ParentBackground = False
+    TabOrder = 2
+    Visible = False
+    ExplicitWidth = 588
+    object dblDadoAdicional: TDBText
+      Left = 4
+      Top = 4
+      Width = 657
+      Height = 39
+      Align = alClient
+      Color = 10778447
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentColor = False
+      ParentFont = False
+      WordWrap = True
+      ExplicitWidth = 580
+    end
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 42
+    Width = 665
+    Height = 43
+    Align = alTop
+    BevelOuter = bvNone
+    Color = 10778447
+    ParentBackground = False
+    TabOrder = 0
+    OnResize = Panel1Resize
+    ExplicitWidth = 588
+    object lbpes: TLabel
+      Left = 3
+      Top = 3
+      Width = 43
+      Height = 19
+      Caption = 'lbpes'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object edpes: TEdit
+      Left = 3
+      Top = 22
+      Width = 582
+      Height = 19
+      CharCase = ecUpperCase
+      Ctl3D = False
+      ParentCtl3D = False
+      TabOrder = 0
+      OnChange = edpesChange
+      OnKeyDown = edpesKeyDown
+      OnKeyPress = edpesKeyPress
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 85
+    Width = 665
+    Height = 175
+    Align = alClient
+    BevelOuter = bvNone
+    BorderWidth = 3
+    Color = 15395562
+    TabOrder = 1
+    ExplicitWidth = 588
+    object dbgpes: TDBGrid
+      Left = 3
+      Top = 3
+      Width = 659
+      Height = 169
+      Align = alClient
+      Color = 10778447
+      Ctl3D = False
+      DataSource = dm.dspesqcad
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'Arial'
+      Font.Style = []
+      Options = [dgTitles, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgCancelOnExit]
+      ParentCtl3D = False
+      ParentFont = False
+      TabOrder = 0
+      TitleFont.Charset = DEFAULT_CHARSET
+      TitleFont.Color = clWindowText
+      TitleFont.Height = -11
+      TitleFont.Name = 'MS Sans Serif'
+      TitleFont.Style = []
+      OnDrawColumnCell = dbgpesDrawColumnCell
+      OnDblClick = dbgpesDblClick
+      OnKeyDown = dbgpesKeyDown
+      OnTitleClick = dbgpesTitleClick
+    end
+  end
+  object pnlCodBarras: TPanel
+    Left = 0
+    Top = 0
+    Width = 665
+    Height = 42
+    Align = alTop
+    BevelOuter = bvNone
+    Color = 10778447
+    ParentBackground = False
+    TabOrder = 3
+    Visible = False
+    ExplicitWidth = 588
+    object Label1: TLabel
+      Left = 3
+      Top = 4
+      Width = 139
+      Height = 19
+      Caption = 'Codigo de Barras'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object edCodBarras: TEdit
+      Left = 3
+      Top = 22
+      Width = 111
+      Height = 19
+      AutoSize = False
+      Ctl3D = False
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'MS Sans Serif'
+      Font.Style = []
+      MaxLength = 13
+      ParentCtl3D = False
+      ParentFont = False
+      TabOrder = 0
+      OnExit = edCodBarrasExit
+      OnKeyPress = edCodBarrasKeyPress
+    end
+  end
+  object sqlcon: TSQLQuery
+    MaxBlobSize = -1
+    Params = <>
+    SQLConnection = dm.conexao
+    Left = 260
+    Top = 16
+  end
+end

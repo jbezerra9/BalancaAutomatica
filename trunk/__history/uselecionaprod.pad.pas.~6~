@@ -1,0 +1,1317 @@
+unit uselecionaprod.pad;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Data.FMTBcd,
+  Data.DB, Data.SqlExpr, Datasnap.DBClient;
+
+type
+  TfSelecionaProd = class(TForm)
+    pnlProdutos: TPanel;
+    sqlcon: TSQLQuery;
+    cdsMesclar: TClientDataSet;
+    cdsMesclarCodProd: TStringField;
+    cdsMesclarDescProd: TStringField;
+    cdsMesclarVrProd: TFloatField;
+    cdsMesclarValorMaior: TAggregateField;
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+
+    iQtdMesclar, iMesa, sNum, seqItemProdCombo, auxIDCombo, pagGrup, pagProd,
+    ultPagGrup, ultPagProd, limitGrup, limitProd, nColunasProd, auxQtdMesc: integer;
+
+    procedure CriaBotoesProdutos(sCodGrupo : String);
+    procedure QtdBotoesGrupos;
+    procedure ClickBtnProduto(Sender: TObject);
+    procedure AddProduto(bProdMesclado : Boolean = False;
+                                    sCodProd : String = '';
+                                    vQtd : Currency = 0;
+                                    vDesconto : Currency = 0);
+  public
+    { Public declarations }
+
+    bt_Prod_DivVert  : Integer;
+    bt_Prod_DivHorz  : Integer;
+    bt_Prod_Heigth   : Integer;
+    bt_Prod_Width    : Integer;
+    bt_Prod_FontName : String;
+    bt_Prod_FontSize : Integer;
+
+    bt_Prod_MaxCaracteres : Integer;
+    bt_Prod_InfoValor : Boolean;
+  end;
+
+var
+  fSelecionaProd: TfSelecionaProd;
+
+const
+    corBtnGrup        = clWindow;
+    corBtnGrupClick   = $0000AA55;
+    corBtnProd        = $00BCE3D6;
+    corBtnProdClick   = $0000AA55;
+
+implementation
+
+{$R *.dfm}
+
+uses uFuncoes, uModulo;
+
+procedure TFSelecionaProd.CriaBotoesProdutos(sCodGrupo : String);
+var
+     botao, botao2: TButton ;
+     c, l: Integer; //coluna e linha
+     x: Integer;
+     iLeft, iTop: Integer; //Define a posição e distancia entre os botoes
+begin
+
+     //Limpa os componentes do pnlProdutos
+     while pnlProdutos.ComponentCount > 0 do
+          pnlProdutos.Components[pnlProdutos.ComponentCount -1].Destroy;
+
+     //bEvento     := False;
+     //bEventoProd := False;
+     //sJoinEvento := '';
+
+     {/// verifica se a comanda participa no modulo evento
+     if (Parametro('EVENTO') = 'S') And
+        (sComanda <> '') then
+     begin
+          bEvento := EventoComanda(sComanda);
+
+          if bEvento = True then
+          begin
+               if PermiteProdutoEvento(sComanda) = False then
+               begin
+                    sJoinEvento := ' inner join tbevento_item on tbevento_item.codigo_prod = tbprod.codigo '+
+                                   ' inner join tbevento on  tbevento.id = tbevento_item.id_evento and '+
+                                   ' current_timestamp between DATA_HORA_INICIAL  and DATA_HORA_FINAL and '+
+                                   ' ' + sComanda + ' between COMANDA_INICIAL and COMANDA_FINAL and ' +
+                                   ' tbevento_item.ativo = ' + QuotedStr('S');
+               end
+               else
+               begin
+                    sJoinEvento := ' left join ( ' +
+                                   ' select tbevento_item.codigo_prod,tbevento_item.valor '+
+                                   ' ,tbevento_item.ativo ' +
+                                   'from tbevento_item '+
+                                   'inner join tbevento on  tbevento.id = tbevento_item.id_evento and '+
+                                   'current_timestamp between DATA_HORA_INICIAL  and '+
+                                   'DATA_HORA_FINAL  and '+
+                                   'tbevento_item.ativo = ' + QuotedStr('S') +
+                                   ' and ' + sComanda + ' between COMANDA_INICIAL and COMANDA_FINAL '+
+                                   ') as evento on TbProd.codigo = evento.codigo_prod ';
+
+                    bEvento     := False;
+                    bEventoProd := True; // permite produto fora do evento
+               end;
+          end;
+     end;   }
+
+     sqlcon.Close;
+     sqlcon.SQL.Text := 'select'+
+          ' first ' + IntToStr(limitProd) +
+          ' skip ' + IntToStr((pagProd - 1) * limitProd) +
+          ' tbprod.codigo, tbprod.descricao, ';
+
+     sqlcon.SQL.Text := sqlcon.SQL.Text +  ' tbprod.PVendaA ';
+
+    { if bEvento = False then
+     begin
+          if bEventoProd = False then
+          begin
+
+          end
+          else
+          begin
+               sqlcon.SQL.Text := sqlcon.SQL.Text + ' case '+
+                                                    'when evento.valor >= 0 Then evento.valor '+
+                                                       'Else tbprod.PVendaA '+
+                                                    'end as PVendaA ';
+          end;
+     end
+     else
+     if bEvento = True then
+          sqlcon.SQL.Text := sqlcon.SQL.Text + ' tbevento_item.valor as pvendaa ';
+               }
+
+     sqlcon.SQL.Text := sqlcon.SQL.Text + ' from tbprod';
+
+     {if (bCombo = True) and (sProdCombo <> '') then
+          sqlcon.SQL.Text := sqlcon.SQL.Text +
+               ' inner join tbprod_combo on'+
+               ' tbprod.codigo = tbprod_combo.cod_prod_item'+
+               ' and tbprod_combo.cod_prod = ''' + sProdCombo + ''''+
+               ' and tbprod_combo.cod_subgrupo = ''' + sCodGrupo + '''';  }
+
+     {if bEvento = True then
+          sqlcon.SQL.Text := sqlcon.SQL.Text + sJoinEvento
+     else
+     if bEvento = False then
+     begin
+          if bEventoProd = True then
+               sqlcon.SQL.Text := sqlcon.SQL.Text + sJoinEvento ;
+     end;
+
+     sqlcon.SQL.Text := sqlcon.SQL.Text +
+               ' where tbprod.utiltouchscreen = ''S''';    }
+
+     sqlcon.SQL.Text := sqlcon.SQL.Text +
+                    ' and tbprod.disponivel = ''S''';
+
+     {if bEvento = False then
+     begin
+          if bEventoProd = False then
+          begin
+
+          end
+          else
+          if bEventoProd = True then
+          begin
+               sqlcon.SQL.Text := sqlcon.SQL.Text +
+                    ' and (tbprod.disponivel = ''S'' Or ' +
+                    ' evento.ativo = ''S'' ) ';
+          end;                                    }
+
+          {if Parametro('IGNORAR_RESTRICAO') <> 'S' then
+               sqlcon.SQL.Text := sqlcon.SQL.Text +
+                    ' and tbprod.codigo not in ('+
+                    '    select tbprod_restri.codprod from tbprod_restri'+
+                    '    where tbprod_restri.dia = (extract(weekday from current_date)+1) and'+
+                    '    current_time between tbprod_restri.hora_ini and tbprod_restri.hora_fin)'+
+                    ' and tbprod.subgrupo not in ('+
+                    '    select tbsubgru_restri.codsubgru from tbsubgru_restri'+
+                    '    where tbsubgru_restri.dia = (extract(weekday from current_date)+1) and'+
+                    '    current_time between tbsubgru_restri.hora_ini and tbsubgru_restri.hora_fin)';
+     end;    }
+
+     {if (bCombo = True) and (sProdCombo = '') then
+          sqlcon.SQL.Text := sqlcon.SQL.Text + ' and tbprod.permite_combo = ''S'''
+     else
+     if (bCombo = False) then
+          sqlcon.SQL.Text := sqlcon.SQL.Text + ' and tbprod.subgrupo = ''' + sCodGrupo + '''';
+
+     if (FDelivery <> nil) and (FDelivery.chamaTouchDelivery = True) then
+          sqlcon.SQL.Text
+     else
+     if VerificaMaiorIdade(sComanda) = 'N' then
+          sqlcon.SQL.Text := sqlcon.SQL.Text + ' and tbprod.bebida_alcoolica = ''N''';
+
+     if Parametro('TOUCH_ORDENA_PRODUTO') = 1 then
+
+     else
+     if Parametro('TOUCH_ORDENA_PRODUTO') = 2 then
+          sqlcon.SQL.Text := sqlcon.SQL.Text + ' order by tbprod.codpesquisa'
+     else
+     if Parametro('TOUCH_ORDENA_PRODUTO') = 3 then
+          sqlcon.SQL.Text := sqlcon.SQL.Text + ' order by tbprod.codigo'
+     else
+     if Parametro('TOUCH_ORDENA_PRODUTO') = 4 then
+          sqlcon.SQL.Text := sqlcon.SQL.Text + ' order by tbprod.INDICE,tbprod.descricao';
+     sqlcon.Open;                            }
+
+     sqlcon.SQL.Text := sqlcon.SQL.Text + ' order by tbprod.descricao';
+
+     iLeft := bt_Prod_DivHorz - bt_Prod_Width;
+     iTop  := bt_Prod_DivVert - bt_Prod_Heigth;
+
+     c := 0;
+     l := iTop;
+
+     while sqlcon.Eof = False do
+     begin
+          inc(c);
+
+          //Cria o botao
+          botao := TButton.Create(pnlProdutos);
+
+          //atribui um nome
+          botao.Name := 'btProd' + sqlcon.FieldByName('codigo').AsString;
+
+          //atribui a procedure que vai executar no evento do Click
+          botao.OnClick := ClickBtnProduto;
+
+          //atribui a descricao com ou sem limite de caracteres  //Ivan Sgarbi - Descrições por setor
+          if bt_Prod_MaxCaracteres > 0 then
+               botao.Caption := uFuncoes.VerificaDescSetor('tbprod', 'tbprod_descricoes', cSetor, sqlcon.FieldByName('codigo').AsString, dm.conexao)
+          else
+               botao.Caption := uFuncoes.VerificaDescSetor('tbprod', 'tbprod_descricoes', cSetor, sqlcon.FieldByName('codigo').AsString, dm.conexao);
+
+          //Informa o valor do produto
+          if bt_Prod_InfoValor then
+               botao.Caption := botao.Caption + #13 +
+                    FormatCurr('#,###,##0.00',sqlcon.FieldByName('pvendaa').AsFloat);
+
+         { //Carrega a imagem no botão
+          if bt_Prod_CarregaImg then
+          begin
+               if FileExists(ExtractFilePath(Application.ExeName) +
+                         'Fotos_Prod\' + sqlcon.FieldByName('codigo').AsString + '.bmp') then
+                    botao.Glyph.LoadFromFile(ExtractFilePath(Application.ExeName) +
+                    'Fotos_Prod\' + sqlcon.FieldByName('codigo').AsString + '.bmp');
+
+               botao.Glyph.TransparentColor := clFuchsia;
+               botao.Glyph.Transparent := False;
+          end;}
+
+          botao.WordWrap := True; //Quebra de linha
+
+          //deixa o botão dentro do pnlProdutos
+          botao.Parent := pnlProdutos;
+
+          //atribui o tamanho
+          botao.Height := bt_Prod_Heigth;
+          botao.Width  := bt_Prod_Width;
+
+          {//atribui aparencia
+          if bCombo = True then
+          begin
+               botao.Tag := 0;
+               if (cdsSeqComboProd_Selecionado.AsString = sqlcon.FieldByName('codigo').AsString)
+               or (auxProdCombo = sqlcon.FieldByName('codigo').AsString) then
+               begin
+                    botao.Color      := corBtnProdClick;
+                    botao.Font.Color := clWindow;
+                    ultBtnProd       := botao.Name;
+               end
+               else
+               begin
+                    botao.Color      := corBtnProd;
+                    botao.Font.Color := clWindowText;
+               end;
+          end
+          else
+          begin}
+         try
+              if cdsMesclar.Locate('CodProd',sqlcon.FieldByName('codigo').AsString,[]) then
+              begin
+                   botao.Tag        := 1;
+                   botao.Color      := corBtnProdClick;
+                   botao.Font.Color := clWindow;
+              end
+              else
+              begin
+                   botao.Tag        := 0;
+                   botao.Color      := corBtnProd;
+                   botao.Font.Color := clWindowText;
+              end;
+         except
+              botao.Tag        := 0;
+              botao.Color      := corBtnProd;
+              botao.Font.Color := clWindowText;
+         end;
+
+
+          botao.Font.Name := bt_Prod_FontName;
+          botao.Font.Size := bt_Prod_FontSize;
+          botao.Font.Style := [fsBold];
+
+          //posiciona o botao dentro do pnlProdutos
+          if c > 1 then
+          begin
+               if c > nColunasProd then
+               begin
+                    c := 1;
+                    l := l + iTop + botao.Height;
+                    botao.Left := iLeft;
+               end
+               else
+               begin
+                    x := botao2.Left + botao2.Width + iLeft;
+                    botao.Left := x;
+               end;
+          end
+          else
+          begin
+               x := iLeft;
+               botao.Left := x;
+          end;
+          botao.Top := l;
+
+          sqlcon.Next;
+          botao2 := botao;
+
+          Self.Refresh;
+     end;
+end;
+
+procedure TFTouch_Pedido.QtdBotoesGrupos;
+var
+     l: Integer;
+     lstSubgrupo: TStringList;
+     sql : string;
+begin
+     limitGrup   := (pnlGrupos.Height - lbPagGrupo.Height) div bt_Grupo_DivVert;
+
+
+     /// verifica se a comanda participa no modulo evento
+     {if (Parametro('EVENTO') = 'S') And
+        (sComanda <> '') Then
+     begin
+          bEvento := EventoComanda(sComanda);
+
+          If bEvento = True Then
+          begin
+               If PermiteProdutoEvento(sComanda) = False Then
+               begin
+                    sJoinEvento := ' inner join (select tbprod.subgrupo '+
+                                   'from tbprod '+
+                                   'inner join tbevento_item on tbevento_item.codigo_prod = tbprod.codigo '+
+                                   'inner join tbevento on  tbevento.id = tbevento_item.id_evento and ' +
+                                   'current_timestamp between DATA_HORA_INICIAL and DATA_HORA_FINAL and '+
+                                   'tbevento_item.ativo = ''S'' and ' +
+                                   ' ' + sComanda + ' between COMANDA_INICIAL and COMANDA_FINAL '+
+                                   ' group by 1)  as evento on evento.subgrupo = tbsubgru.codigo ';
+
+               end
+               else
+               if bEvento = False then
+               begin
+                    sJoinEvento := '';
+                    bEvento     := False;
+               end
+          end
+          else
+          if bEvento = False then
+               sJoinEvento := '';
+     end;        }
+
+     sqlcon.Close;
+     {
+     if bCombo = True then
+     begin
+          sqlcon.SQL.Text := 'select count(tbprod_combo.cod_prod) as qtd'+
+                             ' from tbprod_combo'+
+                             ' inner join tbsubgru on tbprod_combo.cod_subgrupo = tbsubgru.codigo'+
+                             ' where tbprod_combo.cod_prod = ' + QuotedStr(sProdCombo)+
+                             ' group by tbprod_combo.cod_subgrupo';
+     end
+     else
+     begin   }
+          lstSubgrupo := TStringList.Create;
+          iniParam.ReadSection('Subgrupo_Touch',lstSubgrupo);
+
+          sql := 'select count(tbsubgru.codigo) as qtd from tbsubgru'+
+                 ' ' + sJoinEvento +
+                 ' where tbsubgru.utiliza_touch = ''S'''+
+                 ' and (tbsubgru.CONFIG_TOUCH_POR_MICRO = ''N'''+
+                 ' or (tbsubgru.CONFIG_TOUCH_POR_MICRO = ''S'''+
+                 ' and tbsubgru.codigo in (''''';
+
+          for l := 0 to lstSubgrupo.Count -1 do
+               sql := sql + ',' + QuotedStr(lstSubgrupo.Strings[l]);
+
+          sql := sql + ')))';
+
+          //if bEvento = False then
+          //begin
+               if Parametro('IGNORAR_RESTRICAO') <> 'S' then
+                    sql := sql +
+                         ' and tbsubgru.codigo not in ('+
+                         '    select tbsubgru_restri.codsubgru from tbsubgru_restri'+
+                         '    where tbsubgru_restri.dia = (extract(weekday from current_date)+1) and'+
+                         '    current_time between tbsubgru_restri.hora_ini and tbsubgru_restri.hora_fin)';
+          //end;
+
+          FreeAndNil(lstSubgrupo);
+
+          sqlcon.SQL.Text := sql;
+     end;
+     sqlcon.Open;
+
+     ultPagGrup := sqlcon.FieldByName('qtd').AsInteger div limitGrup;
+
+     if (ultPagGrup > 0) and ((ultPagGrup * limitGrup) < sqlcon.FieldByName('qtd').AsInteger) then
+          ultPagGrup := ultPagGrup + 1
+     else
+     if ultPagGrup = 0 then
+          ultPagGrup := 1;
+end;
+
+procedure TfSelecionaProd.QtdBotoesProdutos(sCodGrupo : String);
+begin
+    limitProd := (pnlProdutos.Height div bt_Prod_DivVert) * (pnlProdutos.Width div bt_Prod_DivHorz);
+
+     nColunasProd := pnlProdutos.Width div bt_Prod_DivHorz;
+
+     /// verifica se a comanda participa no modulo evento
+     if (Parametro('EVENTO') = 'S') And
+        (sComanda <> '') Then
+     begin
+          bEvento := EventoComanda(sComanda);
+
+          If bEvento = True Then
+          begin
+               If PermiteProdutoEvento(sComanda) = False Then
+               begin
+                    sJoinEvento := ' inner join (select tbevento_item.codigo_prod '+
+                                   'from tbevento_item '+
+                                   'inner join tbevento on  tbevento.id = tbevento_item.id_evento and ' +
+                                   'current_timestamp between DATA_HORA_INICIAL  and DATA_HORA_FINAL and '+
+                                   'tbevento_item.ativo = ''S'' and ' +
+                                   ' ' + sComanda + ' between COMANDA_INICIAL and COMANDA_FINAL '+
+                                   ' group by 1) as evento on evento.codigo_prod = tbprod.codigo ';
+               end
+               else
+               if bEvento = False then
+               begin
+                    sJoinEvento := '';
+                    bEvento     := False;
+               end;
+          end
+          else
+          if bEvento = False then
+               sJoinEvento := '';
+     end;
+
+     sqlcon.Close;
+     sqlcon.SQL.Text := 'select count(tbprod.codigo) as qtd from tbprod ' + sJoinEvento;
+
+     if (bCombo = True) and (sProdCombo <> '') then
+          sqlcon.SQL.Text := sqlcon.SQL.Text +
+               ' inner join tbprod_combo on'+
+               ' tbprod.codigo = tbprod_combo.cod_prod_item'+
+               ' and tbprod_combo.cod_prod = ''' + sProdCombo + ''''+
+               ' and tbprod_combo.cod_subgrupo = ''' + sCodGrupo + '''';
+
+
+     sqlcon.SQL.Text := sqlcon.SQL.Text +
+          ' where tbprod.utiltouchscreen = ''S''';
+
+     if bEvento = False then
+     begin
+          sqlcon.SQL.Text := sqlcon.SQL.Text +
+                    ' and tbprod.disponivel = ''S''';
+
+          if Parametro('IGNORAR_RESTRICAO') <> 'S' then
+               sqlcon.SQL.Text := sqlcon.SQL.Text +
+                    ' and tbprod.codigo not in ('+
+                    '    select tbprod_restri.codprod from tbprod_restri'+
+                    '    where tbprod_restri.dia = (extract(weekday from current_date)+1) and'+
+                    '    current_time between tbprod_restri.hora_ini and tbprod_restri.hora_fin)'+
+                    ' and tbprod.subgrupo not in ('+
+                    '    select tbsubgru_restri.codsubgru from tbsubgru_restri'+
+                    '    where tbsubgru_restri.dia = (extract(weekday from current_date)+1) and'+
+                    '    current_time between tbsubgru_restri.hora_ini and tbsubgru_restri.hora_fin)';
+     end;
+
+     if (bCombo = True) and (sProdCombo = '') then
+          sqlcon.SQL.Text := sqlcon.SQL.Text + ' and tbprod.permite_combo = ''S'''
+     else
+     begin
+          if (bCombo = False) then
+               sqlcon.SQL.Text := sqlcon.SQL.Text + ' and tbprod.subgrupo = ''' + sCodGrupo + '''';
+     end;
+
+     if (FDelivery <> nil) and (FDelivery.chamaTouchDelivery = True) then
+          sqlcon.SQL.Text
+     else
+     if VerificaMaiorIdade(sComanda) = 'N' then
+          sqlcon.SQL.Text := sqlcon.SQL.Text + ' and tbprod.bebida_alcoolica = ''N''';
+
+     sqlcon.Open;
+
+     ultPagProd := sqlcon.FieldByName('qtd').AsInteger div limitProd;
+
+     if (ultPagProd > 0) and ((ultPagProd * limitProd) < sqlcon.FieldByName('qtd').AsInteger) then
+          ultPagProd := ultPagProd + 1
+     else
+     if ultPagProd = 0 then
+          ultPagProd := 1;
+end;
+
+procedure TFTouch_Pedido.ClickBtnProduto(Sender: TObject);
+begin
+     if pnlProdutos.Tag = 1 then
+          Exit;
+
+     if (ultBtnProd <> '') and (bCombo = True) then
+     begin
+          try (pnlProdutos.FindComponent(ultBtnProd) as TJvSpeedButton).Color      := corBtnProd;
+          except; end;
+
+          try (pnlProdutos.FindComponent(ultBtnProd) as TJvSpeedButton).Font.Color := clWindowText;
+          except; end;
+     end;
+
+     ultBtnProd := TJvSpeedButton(Sender).Name;
+
+     if bCombo = True then
+     begin
+          TJvSpeedButton(Sender).Color := corBtnProdClick;
+          try (pnlProdutos.FindComponent(ultBtnProd) as TJvSpeedButton).Font.Color := clWindow;
+          except; end;
+     end;
+
+     VerificaComandaBloqueada(sComanda);
+     VerificaAberturaComanda(sComanda);
+     VerificaMaiorIdade(sComanda, AnsiReplaceStr(ultBtnProd,'btProd',''), True);
+
+     bEvento     := False;
+     bEventoProd := False;
+     sJoinEvento := '';
+
+     /// verifica se a comanda participa no modulo evento
+     if (Parametro('EVENTO') = 'S') And
+        (sComanda <> '' ) then
+     begin
+          bEvento := EventoComanda(sComanda);
+
+          if bEvento = True then
+          begin
+               if PermiteProdutoEvento(sComanda) = False then
+               begin
+                    sJoinEvento := ' inner join tbevento_item on tbevento_item.codigo_prod = tbprod.codigo ' +
+                                   ' inner join tbevento on  tbevento.id = tbevento_item.id_evento and ' +
+                                   ' current_timestamp between DATA_HORA_INICIAL  and DATA_HORA_FINAL And ' +
+                                   ' ' + sComanda + ' between COMANDA_INICIAL and COMANDA_FINAL and '+
+                                   ' tbevento_item.ativo = ' + QuotedStr('S');
+               end
+               Else
+               begin
+                    sJoinEvento := ' left join ( ' +
+                                   ' select tbevento_item.codigo_prod,tbevento_item.valor '+
+                                   'from tbevento_item '+
+                                   'inner join tbevento on  tbevento.id = tbevento_item.id_evento and '+
+                                   'current_timestamp between DATA_HORA_INICIAL  and '+
+                                   'DATA_HORA_FINAL  and '+
+                                   'tbevento_item.ativo = ' + QuotedStr('S') +
+                                   ' and ' + sComanda + ' between COMANDA_INICIAL and COMANDA_FINAL '+
+                                   ') as evento on TbProd.codigo = evento.codigo_prod ';
+
+                    bEvento     := False;
+                    bEventoProd := True; // permite produto fora do evento
+               end;
+          end;
+     end;
+
+     //Monta consulta SQL
+     //Ivan Sgarbi - Descrições por setor
+     sql := 'select (case when (pd.descricao is null) or (pd.descricao = '''')'+
+            ' then tbprod.descricao'+
+            ' else pd.descricao    end) as descricao,'+
+            ' tbunmed.descricao as unmed,';
+
+     if bEvento = False then
+     begin
+          if bEventoProd = False then
+          begin
+               if Parametro('IGNORAR_PROMOCAO') = 'S' then
+                    sql := sql + ' tbprod.PVendaA'
+               else
+                    sql := sql + ' tbprod.PVendaA - (tbprod.PVendaA * (coalesce(tbprod_promo.percentual,0) / 100)) as PVendaA';
+          end
+          else
+          begin
+               sql := sql + ' case '+
+                           'when evento.valor >= 0 Then evento.valor '+
+                              'Else tbprod.PVendaA '+
+                           'end as PVendaA ';
+          end;
+     end
+     else
+     if bEvento = True then
+          sql := sql + ' tbevento_item.valor as PVendaA';
+
+     sql := sql +
+          ' from tbprod'+
+          ' left join tbunmed on tbprod.unmed = tbunmed.codigo'+
+          // Ivan Sgarbi - Descrições por setor
+          ' left join (select pd1.cod_produto, pd1.descricao from tbprod_descricoes pd1 inner join tbtipo_descricoes td'+
+          ' on td.codigo = pd1.cod_tipo_desc where td.tipo = ' + QuotedStr(cSetor) + ') pd'+
+          ' on  pd.cod_produto = tbprod.codigo';
+
+     if bEvento = False then
+     begin
+          if Parametro('IGNORAR_PROMOCAO') <> 'S' then
+               sql := sql +
+                    ' left join tbprod_promo on'+
+                    '    tbprod.codigo = tbprod_promo.codprod and'+
+                    '    tbprod_promo.dia = (extract(weekday from current_date)+1) and'+
+                    '    current_time between tbprod_promo.hora_ini and tbprod_promo.hora_fin';
+
+          if bEventoProd = True then
+               sql := sql + sJoinEvento ;
+     end
+     else
+          sql := sql + sJoinEvento ;
+
+     sql := sql + ' where tbprod.codigo = ' + QuotedStr(AnsiReplaceStr(ultBtnProd,'btProd',''));
+
+     sqlaux.Close;
+     sqlaux.SQL.Text := sql;
+     sqlaux.Open;
+
+     if btMesclar.Tag = 1 then
+          MesclaProduto
+     else
+     if (AnsiUpperCase(sqlaux.FieldByName('unmed').AsString) = 'KG')
+     and (bCombo = False)
+     and (iniParam.ReadBool('Caixa','UsaBalanca',False) = True) then
+          Teclado_Peso(sqlaux.FieldByName('descricao').AsString,
+                       sqlaux.FieldByName('pvendaa').AsCurrency)
+     else
+          AddProduto;
+end;
+
+procedure TFTouch_Pedido.AddProduto(bProdMesclado : Boolean = False;
+                                    sCodProd : String = '';
+                                    vQtd : Currency = 0;
+                                    vDesconto : Currency = 0);
+var
+     seq, vSeqitem: Integer;
+     sDescProd,sMontaProd, sCodProdMaiorValor, vProd: String;
+     auxDescricaoGrid: Boolean; {Variavel auxiliar para verificar se vai carregar as
+                                 informacoes de ingrediente e variacao na descricao na grid}
+
+     posicaoCDS: Integer; //Quando estiver lançando um Combo, grava a posição do Item no CLientDataSet
+     sCodprodMesclado : String;
+begin
+     bEvento     := False;
+     bEventoProd := False;
+     sJoinEvento := '';
+     vDesccombo  := '';
+     vValor      := 0;
+
+     /// verifica se a comanda participa no modulo evento
+     if (Parametro('EVENTO') = 'S') And
+        (sComanda <> '' ) then
+     begin
+          bEvento := EventoComanda(sComanda);
+
+          if bEvento = True then
+          begin
+               if PermiteProdutoEvento(sComanda) = False then
+               begin
+                    sJoinEvento := ' inner join tbevento_item on tbevento_item.codigo_prod = tbprod.codigo ' +
+                                   ' inner join tbevento on  tbevento.id = tbevento_item.id_evento and ' +
+                                   ' current_timestamp between DATA_HORA_INICIAL and DATA_HORA_FINAL And ' +
+                                   ' ' + sComanda + ' between COMANDA_INICIAL and COMANDA_FINAL and '+
+                                   ' tbevento_item.ativo = ' + QuotedStr('S');
+               end
+               else
+               begin
+                    sJoinEvento := ' left join ( ' +
+                                   ' select tbevento_item.codigo_prod,tbevento_item.valor '+
+                                   'from tbevento_item '+
+                                   'inner join tbevento on  tbevento.id = tbevento_item.id_evento and '+
+                                   'current_timestamp between DATA_HORA_INICIAL  and '+
+                                   'DATA_HORA_FINAL  and '+
+                                   'tbevento_item.ativo = ' + QuotedStr('S') +
+                                   ' and ' + sComanda + ' between COMANDA_INICIAL and COMANDA_FINAL '+
+                                   ') as evento on TbProd.codigo = evento.codigo_prod ';
+
+                    bEvento     := False;
+                    bEventoProd := True; // permite produto fora do evento
+               end;
+          end;
+     end;
+
+     if cdsComanda.IsEmpty then
+     begin
+          if Parametro('UTILIZA_SEQ_COM_COMANDA') = 'S' then
+          begin
+               sqlAdd.Close;
+               sqlAdd.SQL.Text := 'SELECT ID FROM SP_GEN_SEQ_COM_COMANDA';
+               sqlAdd.Open;
+               seq := sqlAdd.FieldByName('ID').AsInteger;
+
+               if seq > Parametro('LIMITE_SEQ_COM_COMANDA') then
+               begin
+                    seq := 1;
+
+                    trans.Limpar;
+                    trans.Adicionar('SET GENERATOR GEN_SEQ_COM_COMANDA TO 1');
+                    trans.Executar;
+               end;
+          end
+          else
+               seq := 0;
+
+          cdsComanda.Append;
+          cdsComandaCOMANDA.AsInteger        := StrToInt(sComanda);
+          cdsComandaSEQ.AsInteger            := seq;
+          cdsComandaMESA.AsInteger           := iMesa;
+          cdsComandaQTD_PESSOAS.AsInteger    := 1;
+          cdsComandaDATA_ABERTURA.AsDateTime := Date;
+          cdsComandaHORA_ABERTURA.AsDateTime := Time;
+          cdsComandaFONE.AsString            := '';
+          cdsComandaCLIENTE.AsString         := '';
+          cdsComandaMAIORIDADE.AsString      := 'S';
+          cdsComanda.Post;
+     end;
+
+     if bProdMesclado = False then
+     begin
+          if sCodProd = '' then
+               sCodProd := AnsiReplaceStr(ultBtnProd,'btProd','');
+
+          //Monta consulta SQL   // Ivan Sgarbi - Descrições por setor
+          sql := 'select tbprod.codigo,'+
+                 ' (case when (pd.descricao is null) or (pd.descricao = '''')'+
+                 ' then tbprod.descricao'+
+                 ' else pd.descricao    end) as descricao,'+
+                 ' tbprod.agrupa_por_subgrupo,'+
+                 ' (case when (sd.descricao is null) or (sd.descricao = '''')' +
+                 ' then tbsubgru.descricao else sd.descricao    end) as desc_grupo,';
+
+          if bEvento = False then
+          begin
+               if bEventoProd = False then
+               begin
+                    if Parametro('IGNORAR_PROMOCAO') = 'S' then
+                         sql := sql + ' tbprod.PVendaA'
+                    else
+                         sql := sql + ' tbprod.PVendaA - (tbprod.PVendaA * (coalesce(tbprod_promo.percentual,0) / 100)) as PVendaA';
+               end
+               else
+               begin
+                    sql := sql + ' case ' +
+                            ' when evento.valor >= 0 Then evento.valor '+
+                            'Else ';
+
+                    if Parametro('IGNORAR_PROMOCAO') = 'S' then
+                         sql := sql + ' tbprod.PVendaA'
+                    else
+                         sql := sql + ' tbprod.PVendaA - (tbprod.PVendaA * (coalesce(tbprod_promo.percentual,0) / 100)) ';
+
+                    sql := sql + ' end as PVendaA ';
+               end;
+          end
+          else
+          if bEvento = True then
+               sql := sql + ' tbevento_item.valor as PVendaA';
+
+          sql := sql +
+               ' from tbprod'+
+               ' left join tbsubgru on tbprod.subgrupo = tbsubgru.codigo'+
+               //Ivan Sgarbi - Descrições por setor
+                    ' left join (select pd1.cod_produto, pd1.descricao from tbprod_descricoes pd1 inner join tbtipo_descricoes td'+
+                    ' on td.codigo = pd1.cod_tipo_desc where td.tipo = ' + QuotedStr(cSetor) + ') pd'+
+                    ' on  pd.cod_produto = tbprod.codigo'+
+                    ' left join (select sd1.cod_subgrupo, sd1.descricao from tbsubgrupo_descricoes sd1 inner join tbtipo_descricoes td1'+
+                    ' on td1.codigo = sd1.cod_tipo_desc where td1.tipo = ' + QuotedStr(cSetor) + ') sd'+
+                    ' on  sd.cod_subgrupo = tbsubgru.codigo';
+
+          if bEvento = False then
+          begin
+               if Parametro('IGNORAR_PROMOCAO') <> 'S' then
+                    sql := sql +
+                         ' left join tbprod_promo on'+
+                         '    tbprod.codigo = tbprod_promo.codprod and'+
+                         '    tbprod_promo.dia = (extract(weekday from current_date)+1) and'+
+                         '    current_time between tbprod_promo.hora_ini and tbprod_promo.hora_fin';
+
+               If bEventoProd = True Then
+                    sql := sql + sJoinEvento;
+          end
+          else
+               sql := sql + sJoinEvento;
+
+          sql := sql + ' where tbprod.codigo = ' + QuotedStr(sCodProd);
+
+          sqlAdd.Close;
+          sqlAdd.SQL.Text := sql;
+          sqlAdd.Open;
+
+          sDescProd := sqlAdd.FieldByName('descricao').AsString;
+          sCodprodMesclado := '';
+     end
+     else
+     begin
+          cdsMesclar.Locate('VrProd',cdsMesclarValorMaior.AsVariant,[]);
+          sCodProdMaiorValor := cdsMesclarCodProd.AsString;
+          sDescProd := '';
+          sCodprodMesclado := '';
+
+          cdsMesclar.First;
+          while cdsMesclar.Eof = False do
+          begin
+               if sDescProd <> '' then
+                    sDescProd := sDescProd + ' / '; // + ' \ ';
+               sDescProd := sDescProd + cdsMesclarDescProd.AsString;
+
+               if sCodprodMesclado <> '' then
+                    sCodprodMesclado := sCodprodMesclado + ',';
+               sCodprodMesclado := sCodprodMesclado + QuotedStr(cdsMesclarCodProd.AsString);
+
+               cdsMesclar.Next;
+          end;
+
+          //Monta consulta SQL
+          sql := 'select tbprod.codigo,'+
+               ' tbprod.agrupa_por_subgrupo, tbsubgru.descricao as desc_grupo,';
+
+          if bEvento = False then
+          begin
+               if bEventoProd = False then
+               begin
+                    if Parametro('IGNORAR_PROMOCAO') = 'S' then
+                         sql := sql + ' tbprod.PVendaA'
+                    else
+                         sql := sql + ' tbprod.PVendaA - (tbprod.PVendaA * (coalesce(tbprod_promo.percentual,0) / 100)) as PVendaA';
+               end
+               else
+               begin
+                    sql := sql + ' case '+
+                                 'when evento.valor >= 0 Then evento.valor '+
+                                   'Else tbprod.PVendaA '+
+                                 'end as PVendaA ';
+               end;
+          end
+          else
+          if bEvento = True then
+               sql := sql + ' tbevento_item.valor as PVendaA';
+
+          sql := sql +
+               ' from tbprod'+
+               ' left join tbsubgru on tbprod.subgrupo = tbsubgru.codigo';
+
+          if bEvento = False then
+          begin
+               if Parametro('IGNORAR_PROMOCAO') <> 'S' then
+                    sql := sql +
+                         ' left join tbprod_promo on'+
+                         '    tbprod.codigo = tbprod_promo.codprod and'+
+                         '    tbprod_promo.dia = (extract(weekday from current_date)+1) and'+
+                         '    current_time between tbprod_promo.hora_ini and tbprod_promo.hora_fin';
+
+               if bEventoProd = True then
+                    sql := sql + sJoinEvento;
+          end
+          else
+               sql := sql + sJoinEvento;
+
+          sql := sql + ' where tbprod.codigo = ' + QuotedStr(sCodProdMaiorValor);
+
+          sqlAdd.Close;
+          sqlAdd.SQL.Text := sql;
+          sqlAdd.Open;
+     end;
+
+     (* Feito por: Wesley - 29/05/2018
+        Motivo: Verifica se é produto Agrupado para agrupar a quantidade.*)
+     if AgrupaProduto(sqlAdd.FieldByName('codigo').AsString) = true then
+     begin
+          if CalculaQtd_Produto_Agrupado(PRODUTO, QTD_ACRESCENTA, sqlAdd.FieldByName('codigo').AsString) = true then
+              Exit;
+     end;
+
+     if (bCombo = True)
+     and (((cdsSeqCombo.IsEmpty = False) and (cdsSeqComboProd_Selecionado.AsString <> ''))
+     or   ((cdsSeqCombo.IsEmpty = True) and (auxProdCombo <> ''))) then
+     begin
+          sqlaux.Close;
+          sqlaux.SQL.Text := 'select tbprod.agrupa_por_subgrupo, tbsubgru.descricao'+
+               ' from tbprod'+
+               ' left join tbsubgru on tbprod.subgrupo = tbsubgru.codigo'+
+               ' where tbprod.codigo = ' + QuotedStr(cdsItemCODPROD.AsString);
+          sqlaux.Open;
+
+          if (sqlaux.FieldByName('agrupa_por_subgrupo').AsString = 'S')
+          and (sqlaux.FieldByName('descricao').AsString <> '') then
+          begin
+               if cdsResumo.Locate('grupo',sqlaux.FieldByName('descricao').AsString,[]) then
+                    if cdsResumoQtd.AsInteger > 1 then
+                    begin
+                         cdsResumo.Edit;
+                         cdsResumoQtd.AsInteger := cdsResumoQtd.AsInteger - 1;
+                         cdsResumo.Post;
+                    end
+                    else
+                         cdsResumo.Delete;
+          end
+          else
+          begin
+               if cdsResumo.Locate('grupo',cdsItemDESCRICAO.AsString,[]) then
+                    if cdsResumoQtd.AsInteger > 1 then
+                    begin
+                         cdsResumo.Edit;
+                         cdsResumoQtd.AsInteger := cdsResumoQtd.AsInteger - 1;
+                         cdsResumo.Post;
+                    end
+                    else
+                         cdsResumo.Delete;
+          end;
+          cdsItem.Edit;
+
+          if cdsItemCODPROD.AsString <> sqlAdd.FieldByName('codigo').AsString then
+          begin
+               cdsIngredienteItem.First;
+               while cdsIngredienteItem.Eof = False do
+                    cdsIngredienteItem.Delete;
+
+               if not cdsVariacao.IsEmpty then
+               begin
+                    cdsVariacao.First;
+                    while cdsVariacao.Eof = False do
+                         cdsVariacao.Delete;
+               end;
+
+               cdsItemID_INGRE.AsInteger := 0;
+               auxDescricaoGrid := True;
+          end
+          else
+               auxDescricaoGrid := False;
+     end
+     else
+     begin
+          auxDescricaoGrid := True;
+
+          cdsItem.Append;
+          cdsItemCOMANDA.AsInteger    := StrToInt(sComanda);
+          cdsItemFUNCIONARIO.AsString := sCodOperador;
+
+          sqlSeqItem.Close;
+          sqlSeqItem.SQL.Text := 'select id from sp_gen_tbcomanda_item';
+          sqlSeqItem.Open;
+
+          cdsItemSEQ_ITEM.AsInteger := sqlSeqItem.FieldByName('id').AsInteger;
+          vSeqitem                  := sqlSeqItem.FieldByName('id').AsInteger;
+          cdsItemID_INGRE.AsInteger := 0;
+
+          {Produto marcado como liberado para alteração ou exclusão, pois esta sendo adicionado.
+          Os produtos marcados com FALSE já estão salvos na tabela e só poderão ser alterados
+          ou excluidos com senha}
+          cdsItemCalc_ProdLiberado.AsBoolean := True;
+
+          if bCombo = True then
+          begin
+               cdsItemCalc_ID_Combo.AsInteger := auxIDCombo;
+
+               if sProdCombo = '' then
+                    cdsItemCalc_Combo_Pai.AsString := 'S'
+               else
+                    cdsItemCalc_Combo_Pai.AsString := 'N';
+          end
+          else
+          begin
+               cdsItemCalc_ID_Combo.AsInteger := 0;
+               cdsItemCalc_Combo_Pai.AsString := '';
+          end;
+     end;
+
+     if bProdMesclado = False then
+          cdsItemCODPROD_2.AsString := ''
+     else
+          cdsItemCODPROD_2.AsString := '999999';
+
+     if ProdutoMontagem(sqlAdd.FieldByName('codigo').AsString) then
+               cdsItemCODPROD_2.AsString   := GetcodigoPesquisaProduto(FormatFloat('000000', sqlAdd.FieldByName('codigo').AsInteger));
+
+     cdsItemCODPROD.AsString   := sqlAdd.FieldByName('codigo').AsString;
+     cdsItemDESCRICAO.AsString := sDescProd;
+
+     if vQtd = 0 then
+     begin
+          cdsItemQTD.AsInteger      := 1;
+          cdsItemSEQ_PESO.AsInteger := 0;
+     end
+     else
+     begin
+          cdsItemQTD.AsCurrency := vQtd;
+
+          if Strftocurr(cdsItemMaxIndiceProd.AsString) > 0 then
+               cdsItemSEQ_PESO.AsInteger := StrToInt(cdsItemMaxIndiceProd.AsString) + 1
+          else
+          begin
+               sqlcon.Close;
+               sqlcon.SQL.Text := 'select max(seq_peso) as idx from tbcomanda_item' +
+                    ' where comanda = ' + sComanda;
+               sqlcon.Open;
+               cdsItemSEQ_PESO.AsInteger := sqlcon.FieldByName('idx').AsInteger + 1;
+          end;
+     end;
+
+    // if vBtnAlternarTouch = True then
+    // begin
+          if ProdutoMontagem(sqlAdd.FieldByName('codigo').AsString) then
+          begin
+               cdsProdutosCombo.EmptyDataSet;
+               try
+                    Application.CreateForm(TFTouchItensCombo, FTouchItensCombo);
+                    FTouchItensCombo.FCodigoProduto := cdsItemCODPROD.AsString;
+                    FTouchItensCombo.ShowModal;
+
+                    if cdsProdutosCombo.RecordCount <= 0 then
+                    begin
+                         cdsitem.Cancel;
+                         FreeAndNil(FTouchItensCombo);
+                         Exit;
+                    end;
+
+                    sMontaProd := '';
+                    cdsProdutosCombo.First;
+
+                    while not cdsProdutosCombo.eof do
+                    begin
+                         vValor := vValor + cdsProdutosCombovalor_venda.AsFloat * cdsProdutosComboquantidade.AsInteger;
+                         cdsItemVR_UNIT.AsFloat := sqlAdd.FieldByName('pvendaa').AsFloat;
+
+                         if Trim(cdsProdutosCombodesc_varia.AsString) = '' then
+                              sMontaProd := cdsProdutosCombodescprod.AsString
+                         else
+                              sMontaProd := cdsProdutosComboCalc_Desc_Grid.AsString;
+
+                         if vDesccombo <> '' then
+                              vDesccombo :=   vDesccombo + '    ' + cdsProdutosComboquantidade.AsString  + ' ' + sMontaProd + #$D#$A
+                         else
+                              vDesccombo :=   '    '  +   cdsProdutosComboquantidade.AsString + ' ' + sMontaProd + #$D#$A;
+
+                        cdsProdutosCombo.Next;
+                    end;
+
+                    cdsItemCalc_Montagem.AsString  := 'S'; // produto tem montagem
+               finally
+                     FreeAndNil(FTouchItensCombo);
+               end;
+          end
+          else
+          begin
+               if vDesconto = 0 then
+                    cdsItemVR_UNIT.AsFloat := sqlAdd.FieldByName('pvendaa').AsFloat
+               else
+                    cdsItemVR_UNIT.AsFloat := vDesconto;
+
+               cdsItemCalc_Montagem.AsString := 'N'; // produto não tem montagem
+          end;
+    { end
+     else
+     begin
+          if vDesconto = 0 then
+               cdsItemVR_UNIT.AsFloat := sqlAdd.FieldByName('pvendaa').AsFloat
+          else
+               cdsItemVR_UNIT.AsFloat := vDesconto;
+
+          cdsItemCalc_Montagem.AsString := 'N'; // produto não tem montagem
+     end; }
+
+     DescricaoGrid(auxDescricaoGrid); //Variavel aux. Verifica se vai carregar Ingre. e Varia.
+     cdsItemCodProdMescla.AsString := sCodprodMesclado; // codigo do produto mesclado
+
+     cdsItem.Post;
+     vProd := cdsItemCODPROD.AsString;
+
+     // insere os produtos do combo
+     if vDesccombo <> '' then
+     begin
+          cdsProdutosCombo.First;
+          while not cdsProdutosCombo.eof do
+          begin
+               cdsItem.Append;
+
+               sqlSeqItem.Close;
+               sqlSeqItem.SQL.Text := 'select id from sp_gen_tbcomanda_item';
+               sqlSeqItem.Open;
+
+               cdsItemSEQ_ITEM.AsInteger := sqlSeqItem.FieldByName('id').AsInteger;
+
+               if Strftocurr(cdsItemMaxIndiceProd.AsString) > 0 then
+                    cdsItemSEQ_PESO.AsInteger := StrToInt(cdsItemMaxIndiceProd.AsString) + 1
+               else
+               begin
+                    sqlcon.Close;
+                    sqlcon.SQL.Text := 'select max(seq_peso) as idx from tbcomanda_item' +
+                         ' where comanda = ' + sComanda;
+                    sqlcon.Open;
+                    cdsItemSEQ_PESO.AsInteger := sqlcon.FieldByName('idx').AsInteger + 1;
+               end;
+
+               cdsItemCODPROD.AsString     := FormatFloat('000000', cdsProdutosCombo.FieldByName('codigo_produto').Asinteger);
+               cdsItemCODPROD_2.AsString   := GetcodigoPesquisaProduto(FormatFloat('000000', cdsProdutosCombo.FieldByName('codigo_produto').Asinteger));
+               cdsItemComanda.AsString     := sComanda;
+               cdsItemDescricao.AsString   := cdsProdutosCombo.FieldByName('descprod').AsString;
+               cdsItemQtd.AsFloat          := cdsProdutosCombo.FieldByName('quantidade').AsFloat;
+               cdsItemVR_UNIT.AsFloat      := Strftocurr(cdsProdutosCombo.FieldByName('valor_venda').AsString);
+               cdsItemSetor.AsString       := cdsProdutosCombo.FieldByName('setor').AsString;
+               cdsItemvariacao.AsString    := cdsProdutosCombo.FieldByName('desc_varia').AsString;
+               cdsItemId_Ingre.AsInteger   := 0;
+               cdsItemPROD_PAI.AsInteger   := vSeqitem;
+               cdsItemFUNCIONARIO.AsString := sCodOperador;
+               cdsItem.Post;
+
+               cdsProdutosCombo.Next;
+          end;
+     end;
+
+     if cdsProdutosCombo.RecordCount > 0 then
+          JvDBGrid1.RowsHeight := JvDBGrid1.RowsHeight + 15;
+
+     posicaoCDS := -1;
+
+     if (sProdCombo <> '') and (bCombo = True) then
+          posicaoCDS := cdsItem.RecNo;
+
+     cdsItem.Filter := 'Calc_Desc_Grid <> ''''';
+     cdsItem.Filtered := True;
+
+     if (sProdCombo <> '') and (bCombo = True) and (posicaoCDS >= 0) then
+          cdsItem.MoveBy(posicaoCDS-1);
+
+     sqlcon3.Close;
+     sqlcon3.SQL.Text := ' SELECT tbunmed.descricao' +
+          ' FROM tbunmed' +
+          ' left outer join tbprod on tbprod.unmed = tbunmed.codigo' +
+          ' where tbprod.codigo = ''' + cdsItemCODPROD.AsString + '''';
+     sqlcon3.Open;
+
+     { Feito por: Wesley 16/02/2018
+       Motivo: Grava na tabela TBCOMANDA_PESO_AND para visualização no Android}
+     if (Parametro('COMANDA_PESO_ANDROID') = 'S') and (iniParam.ReadString('Caixa', 'Id_Balanca', '') <> '') then
+     begin
+          GravaComandaPeso(sComanda, cdsItemDESCRICAO.AsString, cdsItemQTD.AsFloat,
+              cdsItemVR_UNIT.AsFloat, cdsItemVR_UNIT.AsFloat * cdsItemQTD.AsFloat,
+              AnsiUpperCase(sqlcon3.FieldByName('descricao').AsString));
+     end;
+
+     if (sqlAdd.FieldByName('agrupa_por_subgrupo').AsString = 'S')
+     and (sqlAdd.FieldByName('desc_grupo').AsString <> '') then
+     begin
+          if cdsResumo.Locate('Grupo',sqlAdd.FieldByName('desc_grupo').AsString,[]) then
+          begin
+               cdsResumo.Edit;
+               cdsResumoQtd.AsInteger := cdsResumoQtd.AsInteger + 1;
+          end
+          else
+          begin
+               cdsResumo.Append;
+               cdsResumoGrupo.AsString := sqlAdd.FieldByName('desc_grupo').AsString;
+               cdsResumoQtd.AsInteger  := 1;
+          end;
+     end
+     else
+     begin
+          if cdsResumo.Locate('Grupo',sDescProd,[]) then
+          begin
+               cdsResumo.Edit;
+               cdsResumoQtd.AsInteger := cdsResumoQtd.AsInteger + 1;
+          end
+          else
+          begin
+               cdsResumo.Append;
+               cdsResumoGrupo.AsString := sDescProd;
+               cdsResumoQtd.AsInteger  := 1;
+          end;
+     end;
+
+     cdsResumo.Post;
+
+     if bCombo = True then
+     begin
+          if sProdCombo = '' then
+          begin
+               seqItemProdCombo := cdsItemSEQ_ITEM.AsInteger;
+               auxProdCombo := cdsItemCODPROD.AsString;
+
+               btComboProximo.Enabled := True;
+          end
+          else
+          begin
+               cdsSeqCombo.Edit;
+               cdsSeqComboProd_Selecionado.AsString := cdsItemCODPROD.AsString;
+               cdsSeqComboSeq_Item.AsInteger := cdsItemSEQ_ITEM.AsInteger;
+               cdsSeqCombo.Post;
+          end;
+     end;
+
+     {Henrique 28/07/2021 - verificar se o item possui ingrediente obrigatório para abrir a
+                       tela de ingredientes e verifica se contém produtos mesclados}
+     vIngObr := false;
+     if (sCodProd <> '') and (cdsItemCODPROD_2.AsString <> '999999') then
+     begin
+          sqlIngObr.Close;
+          sqlIngObr.SQL.Clear;
+          sqlIngObr.SQL.Add('select p.ingrediente_obrigatorio from tbprod P');
+          //sqlIngObr.sql.Add(' where p.codpesquisa = '''+cdsItemCODPROD_2.AsString+'''');
+          sqlIngObr.sql.Add(' where p.codigo = '''+cdsItemCODPROD.AsString+'''');
+          sqlIngObr.ExecSQL();
+          sqlIngObr.Open;
+
+          if sqlIngObr.FieldByName('INGREDIENTE_OBRIGATORIO').Value = 'S' then
+          begin
+               btIngrediente.Click;
+
+               if (cdsIngredienteItem.RecordCount <= 0) then
+               begin
+                    cdsitem.Cancel;
+
+                    if Parametro('LAYOUT_INGREDIENTE_TOUCH_QTD') = 'N' then
+                         FreeAndNil(FTouch_Ingrediente)
+                    else if Parametro('LAYOUT_INGREDIENTE_TOUCH_QTD') = 'S' then
+                         FreeAndNil(FTouch_Ingrediente_L2);
+
+                    btExcluir.Click;
+                    Exit;
+               end;
+          end;
+     end
+
+     else
+     begin
+          cdsMesclar.First;
+          while not cdsMesclar.Eof do
+          begin
+               sqlIngObr.Close;
+               sqlIngObr.SQL.Clear;
+               sqlIngObr.SQL.Add('select p.ingrediente_obrigatorio from tbprod P');
+               //sqlIngObr.sql.Add(' where p.codpesquisa = '''+cdsItemCODPROD_2.AsString+'''');
+               sqlIngObr.sql.Add(' where p.codigo = '''+cdsMesclarCodProd.AsString+'''');
+               sqlIngObr.ExecSQL();
+               sqlIngObr.Open;
+
+               if sqlIngObr.FieldByName('INGREDIENTE_OBRIGATORIO').Value = 'S' then
+               begin
+                    vIngObr := true;
+                    Break;
+               end
+
+               else
+               begin
+                    cdsMesclar.Next;
+               end;
+
+          end;
+
+          if vIngObr then
+          begin
+               btIngredienteClick(Self);
+
+               if (cdsIngredienteItem.RecordCount <= 0) then
+               begin
+                    cdsitem.Cancel;
+
+                    if Parametro('LAYOUT_INGREDIENTE_TOUCH_QTD') = 'N' then
+                         FreeAndNil(FTouch_Ingrediente)
+                    else if Parametro('LAYOUT_INGREDIENTE_TOUCH_QTD') = 'S' then
+                         FreeAndNil(FTouch_Ingrediente_L2);
+
+                    btExcluir.Click;
+                    Exit;
+               end;
+          end;
+     end;  //Fim alteração
+
+     GravarConsumoBarril(vSeqItem);
+     sqlAdd.Close;
+
+end;
+
+procedure TfSelecionaProd.FormShow(Sender: TObject);
+begin
+    bt_Prod_DivVert  := 121;
+    bt_Prod_DivHorz  := 99;
+    bt_Prod_Heigth   := 115;
+    bt_Prod_Width    := 92;
+
+    bt_Prod_FontName := 'Arial';
+    bt_Prod_FontSize := 7;
+
+    bt_Prod_MaxCaracteres := 0;
+    bt_Prod_InfoValor     := False;
+    bt_Prod_CarregaImg    := True;
+end;
+
+end.
+

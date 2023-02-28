@@ -1,0 +1,116 @@
+unit uPrinc;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.StrUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Imaging.jpeg, Vcl.ExtCtrls,
+  ACBrBase, ACBrBAL, Vcl.StdCtrls;
+
+type
+  TForm1 = class(TForm)
+    Panel1: TPanel;
+    Image1: TImage;
+    pnlPeso: TPanel;
+    FACBrBAL: TACBrBAL;
+    mMensagem: TMemo;
+    procedure FormDestroy(Sender: TObject);
+    procedure FACBrBALLePeso(Peso: Double; Resposta: AnsiString);
+    procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+  private
+    { Private declarations }
+    function lerBalanca(Peso : Double) : boolean;
+  public
+    { Public declarations }
+    peso1 : double;
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+function TForm1.lerBalanca(Peso : Double) : boolean;
+begin
+    if peso1 = peso then
+        exit
+    else
+        peso1 := FACBrBAL.UltimoPesoLido;
+
+    if peso < strToFloat('0,030') then
+      exit;
+
+    mMensagem.Lines.Clear;
+    mMensagem.Color    := clYellow;
+    mMensagem.Lines.Add(' ');
+    mMensagem.Lines.Add('Lendo balança...');
+    mMensagem.Lines.Add(' ');
+
+    sleep(3000);
+
+    if peso1 <> peso then
+    begin
+        mMensagem.Lines.Clear;
+        mMensagem.Lines.Add(' ');
+        mMensagem.Lines.Add('Erro na leitura. ');
+        mMensagem.Lines.Add('Retire o prato e coloque na balança');
+        mMensagem.Color    := clRed;
+
+        pnlPeso.Caption      := '';
+        exit;
+    end;
+
+    mMensagem.Lines.Clear;
+    mMensagem.Color    := clLime;
+    mMensagem.Lines.Add(' ');
+    mMensagem.Lines.Add('Balança pronta.');
+    mMensagem.Lines.Add('coloque o seu prato!');
+
+    pnlPeso.Caption      := Format('%.3f kg', [Peso]);
+end;
+
+procedure TForm1.FACBrBALLePeso(Peso: Double; Resposta: AnsiString);
+begin
+    if peso = strToFloat('0,000') then
+    begin
+        mMensagem.Lines.Clear;
+        mMensagem.Lines.Add(' ');
+        mMensagem.Lines.Add('Balança pronta.');
+        mMensagem.Lines.Add('Coloque o seu prato!');
+        mMensagem.Color    := clLime;
+
+        pnlPeso.Caption      := '';
+
+        exit;
+    end;
+
+    lerBalanca(Peso);
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+    FAcBrBAL.Ativar;
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+   // Desconecta da balança e libera o objeto
+    FAcBrBAL.Desativar;
+    FAcBrBAL.Free;
+end;
+
+procedure TForm1.FormShow(Sender: TObject);
+begin
+    mMensagem.Lines.Clear;
+    mMensagem.Lines.Add(' ');
+    mMensagem.Lines.Add('Balança pronta.');
+    mMensagem.Lines.Add('Coloque o seu prato!');
+    mMensagem.Color    := clLime;
+
+    pnlPeso.Caption    := '';
+end;
+
+end.

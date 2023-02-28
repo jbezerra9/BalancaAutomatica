@@ -1,0 +1,33 @@
+object fSelecionaProd: TfSelecionaProd
+  Left = 0
+  Top = 0
+  Caption = 'fSelecionaProd'
+  ClientHeight = 670
+  ClientWidth = 790
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object pnlProdutos: TPanel
+    Left = 0
+    Top = 0
+    Width = 790
+    Height = 670
+    Align = alClient
+    TabOrder = 0
+    ExplicitLeft = 56
+    ExplicitTop = 192
+    ExplicitWidth = 185
+    ExplicitHeight = 41
+  end
+  object sqlcon: TSQLQuery
+    Params = <>
+    Left = 680
+    Top = 48
+  end
+end

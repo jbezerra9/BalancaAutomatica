@@ -1,0 +1,24 @@
+program InsereBalancaAuto;
+
+uses
+  Vcl.Forms,
+  uFuncoes in 'uFuncoes.pas',
+  ulibsis in 'ulibsis.pas' {FLibsis},
+  uMensagem in 'uMensagem.pas' {FrMensagem},
+  uModulo in 'uModulo.pas' {dm: TDataModule},
+  uPrinc in 'uPrinc.pas' {fPrinc},
+  Utransacao in 'Utransacao.pas',
+  usplash in 'usplash.pas' {FSplash};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TfPrinc, fPrinc);
+  Application.CreateForm(TFLibsis, FLibsis);
+  Application.CreateForm(TFrMensagem, FrMensagem);
+  Application.CreateForm(Tdm, dm);
+  Application.CreateForm(TFSplash, FSplash);
+  Application.Run;
+end.
