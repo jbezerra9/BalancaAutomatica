@@ -36,55 +36,13 @@ object frelpagamento: Tfrelpagamento
       Left = 0
       Top = 0
       Width = 340
-      Height = 108
+      Height = 33
       BandType = btHeader
       Borders.Sides = sdCustom
       Borders.DrawLeft = False
       Borders.DrawTop = False
       Borders.DrawRight = False
       Borders.DrawBottom = True
-      object RLSystemInfo1: TRLSystemInfo
-        Left = 3
-        Top = 80
-        Width = 58
-        Height = 19
-        Font.Charset = ANSI_CHARSET
-        Font.Color = clBlack
-        Font.Height = -16
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
-        Text = ''
-      end
-      object RLSystemInfo2: TRLSystemInfo
-        Left = 279
-        Top = 80
-        Width = 58
-        Height = 19
-        Alignment = taRightJustify
-        Font.Charset = ANSI_CHARSET
-        Font.Color = clBlack
-        Font.Height = -16
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        Info = itHour
-        ParentFont = False
-        Text = ''
-      end
-      object rlComanda2: TRLLabel
-        Left = 94
-        Top = 47
-        Width = 142
-        Height = 19
-        Alignment = taCenter
-        Caption = 'Comanda: 01999'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlack
-        Font.Height = -16
-        Font.Name = 'Tahoma'
-        Font.Style = [fsBold]
-        ParentFont = False
-      end
       object rlNomeEmp: TRLMemo
         Left = 80
         Top = 8
@@ -102,7 +60,7 @@ object frelpagamento: Tfrelpagamento
     end
     object RLBand4: TRLBand
       Left = 0
-      Top = 108
+      Top = 73
       Width = 340
       Height = 20
       BandType = btTitle
@@ -112,7 +70,7 @@ object frelpagamento: Tfrelpagamento
       Borders.DrawRight = False
       Borders.DrawBottom = True
       object RLLabel2: TRLLabel
-        Left = 6
+        Left = 5
         Top = 1
         Width = 56
         Height = 16
@@ -125,7 +83,7 @@ object frelpagamento: Tfrelpagamento
         ParentFont = False
       end
       object RLLabel3: TRLLabel
-        Left = 187
+        Left = 200
         Top = 0
         Width = 29
         Height = 16
@@ -138,7 +96,7 @@ object frelpagamento: Tfrelpagamento
         ParentFont = False
       end
       object RLLabel4: TRLLabel
-        Left = 266
+        Left = 299
         Top = 1
         Width = 38
         Height = 16
@@ -153,7 +111,7 @@ object frelpagamento: Tfrelpagamento
     end
     object RLBand5: TRLBand
       Left = 0
-      Top = 153
+      Top = 118
       Width = 340
       Height = 113
       BandType = btSummary
@@ -203,11 +161,11 @@ object frelpagamento: Tfrelpagamento
     end
     object RLBand1: TRLBand
       Left = 0
-      Top = 128
+      Top = 93
       Width = 340
       Height = 25
       object RLDBText2: TRLDBText
-        Left = 178
+        Left = 194
         Top = 3
         Width = 42
         Height = 16
@@ -225,7 +183,7 @@ object frelpagamento: Tfrelpagamento
         Text = ''
       end
       object RLDBText3: TRLDBText
-        Left = 235
+        Left = 268
         Top = 3
         Width = 69
         Height = 16
@@ -245,7 +203,7 @@ object frelpagamento: Tfrelpagamento
       object RLDBMemo1: TRLDBMemo
         Left = 5
         Top = 3
-        Width = 158
+        Width = 172
         Height = 16
         Behavior = [beSiteExpander]
         DataField = 'Descricao'
@@ -255,6 +213,60 @@ object frelpagamento: Tfrelpagamento
         Font.Height = -13
         Font.Name = 'Tahoma'
         Font.Style = []
+        ParentFont = False
+      end
+    end
+    object RLBand3: TRLBand
+      Left = 0
+      Top = 33
+      Width = 340
+      Height = 40
+      BandType = btHeader
+      Borders.Sides = sdCustom
+      Borders.DrawLeft = False
+      Borders.DrawTop = False
+      Borders.DrawRight = False
+      Borders.DrawBottom = True
+      object RLSystemInfo3: TRLSystemInfo
+        Left = 5
+        Top = 23
+        Width = 43
+        Height = 14
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -12
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Text = ''
+      end
+      object RLSystemInfo4: TRLSystemInfo
+        Left = 293
+        Top = 23
+        Width = 44
+        Height = 14
+        Alignment = taRightJustify
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlack
+        Font.Height = -12
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
+        Info = itHour
+        ParentFont = False
+        Text = ''
+      end
+      object rlComanda2: TRLLabel
+        Left = 94
+        Top = 5
+        Width = 142
+        Height = 19
+        Alignment = taCenter
+        Caption = 'Comanda: 01999'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -16
+        Font.Name = 'Tahoma'
+        Font.Style = [fsBold]
         ParentFont = False
       end
     end

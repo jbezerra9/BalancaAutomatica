@@ -12,7 +12,6 @@ object fPrinc: TfPrinc
   OldCreateOrder = False
   Position = poDesigned
   WindowState = wsMaximized
-  OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
@@ -5794,7 +5793,6 @@ object fPrinc: TfPrinc
     Modelo = balToledo
     Porta = 'COM2'
     Intervalo = 2000
-    MonitorarBalanca = True
     OnLePeso = FACBrBALLePeso
     Left = 32
     Top = 24
@@ -5846,7 +5844,7 @@ object fPrinc: TfPrinc
   end
   object Timer1: TTimer
     Enabled = False
-    Interval = 500
+    Interval = 2500
     OnTimer = Timer1Timer
     Left = 72
     Top = 128

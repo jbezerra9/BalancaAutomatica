@@ -14,18 +14,19 @@ type
     RLLabel2: TRLLabel;
     RLLabel3: TRLLabel;
     RLLabel4: TRLLabel;
-    RLSystemInfo1: TRLSystemInfo;
-    RLSystemInfo2: TRLSystemInfo;
     RLBand5: TRLBand;
     RLMemo1: TRLMemo;
     RLDraw3: TRLDraw;
     RLMemo2: TRLMemo;
-    rlComanda2: TRLLabel;
     RLBand1: TRLBand;
     RLDBText2: TRLDBText;
     RLDBText3: TRLDBText;
     RLDBMemo1: TRLDBMemo;
     rlNomeEmp: TRLMemo;
+    RLBand3: TRLBand;
+    RLSystemInfo3: TRLSystemInfo;
+    RLSystemInfo4: TRLSystemInfo;
+    rlComanda2: TRLLabel;
   private
     { Private declarations }
   public
