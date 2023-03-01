@@ -19,6 +19,6 @@ begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(Tdm, dm);
-  Application.CreateForm(TfSelecionaProd, fSelecionaProd);
+  Application.CreateForm(TFSplash, FSplash);
   Application.Run;
 end.

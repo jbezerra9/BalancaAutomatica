@@ -58,7 +58,7 @@ var
 
 implementation
 
-uses uprinc, umodulo, StrUtils, uFuncoes, ulibsis, uMensagem;
+uses uprinc, umodulo, StrUtils, uFuncoes, ulibsis, uMensagem, uselecionaprod;
 
 {$R *.dfm}
 
@@ -249,11 +249,11 @@ begin
      end;
 
      try
-          Application.CreateForm(tfprinc, FPrinc);
-          FPrinc.ShowModal;
+          Application.CreateForm(TfSelecionaProd, fSelecionaProd);
+          fSelecionaProd.ShowModal;
      finally
 
-          //try FreeAndNil(FPrinc); except; end;
+          try FreeAndNil(fSelecionaProd); except; end;
      end;
 
      FinalizaSistema :

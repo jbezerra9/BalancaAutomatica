@@ -41,11 +41,10 @@ type
   private
     { Private declarations }
     vrvenda: Double;
-    bBalancaPronta: Boolean;
     function lerBalanca(Peso: Double): Boolean;
   public
     { Public declarations }
-    peso1: Double;
+    PesoAnterior: Double;
   end;
 
 var
@@ -65,18 +64,13 @@ uses uFuncoes, uModulo, Utransacao, uMensagem, upesqcad, urelPagamento,
 
 function TfPrinc.lerBalanca(Peso: Double): Boolean;
 begin
-  if not bBalancaPronta then
-    Exit
-  else
-    bBalancaPronta := False;
-
-  { if peso1 = peso then
-    exit
-    else
-    peso1 := peso;
-  }
-  if Peso < strToFloat('0,020') then
+  if (Arredondar(Peso,3) = Arredondar(PesoAnterior,3))
+  or (Arredondar(Peso,3) = Arredondar(PesoAnterior + 0.002,3))
+  or (Arredondar(Peso,3) = Arredondar(PesoAnterior - 0.002,3))
+  or (Arredondar(Peso,3) < Arredondar(strToFloat('0,020'),3)) then
     Exit;
+
+  PesoAnterior := Peso;
 
   mMensagem.Lines.Clear;
   mMensagem.Color := clYellow;
@@ -84,20 +78,6 @@ begin
   mMensagem.Lines.Add('Lendo balança...');
 
   sleep(3000);
-
-  { if peso1 <> peso then
-    begin
-    mMensagem.Lines.Clear;
-    mMensagem.Lines.Add(' ');
-    mMensagem.Lines.Add('Erro na leitura. ');
-    mMensagem.Lines.Add('Retire o prato e coloque na balança');
-    mMensagem.Lines.Add(' ');
-    mMensagem.Color    := clRed;
-
-    pnlPeso.Caption    := '0.000 KG';
-    vrProd.Caption     := 'R$ 0,00';
-    exit;
-    end; }
 
   mMensagem.Lines.Clear;
   mMensagem.Color := clLime;
@@ -158,10 +138,8 @@ end;
 
 procedure TfPrinc.FACBrBALLePeso(Peso: Double; Resposta: AnsiString);
 begin
-  if Peso = 0.000 then
+  if (Peso = 0.000) then
   begin
-    bBalancaPronta := True;
-
     mMensagem.Lines.Clear;
     mMensagem.Lines.Add(' ');
     mMensagem.Lines.Add('Balança pronta.');
@@ -170,8 +148,6 @@ begin
 
     vrPeso.Caption := '0.000 KG';
     vrProd.Caption := 'R$ 0,00';
-
-    peso1 := 0;
   end
   else if Peso > 0 then
     lerBalanca(Peso);
@@ -179,15 +155,14 @@ end;
 
 procedure TfPrinc.FormCreate(Sender: TObject);
 begin
-  FACBrBAL.Ativar;
-  bBalancaPronta := True;
+  //FACBrBAL.Ativar;
 end;
 
 procedure TfPrinc.FormDestroy(Sender: TObject);
 begin
   // Desconecta da balança e libera o objeto
   FACBrBAL.Desativar;
-  FACBrBAL.Free;
+  //FACBrBAL.Free;
   dm.tbemp.Close;
 end;
 
@@ -207,7 +182,7 @@ begin
 
   sqlcon.Close;
   sqlcon.SQL.Text := ' select pvendaa from tbprod where codigo = ' +
-    quotedStr(sCodProd);
+                      quotedStr(sCodProd);
   sqlcon.Open;
 
   if sqlcon.IsEmpty then
@@ -219,13 +194,15 @@ begin
   vrvenda := sqlcon.FieldByName('pvendaa').AsFloat;
 
   mMensagem.Lines.Clear;
-  // mMensagem.Lines.Add(' ');
   mMensagem.Lines.Add('Balança pronta.');
   mMensagem.Lines.Add('Coloque o seu prato!');
   mMensagem.Color := clLime;
 
   vrPeso.Caption := '0.000 KG';
   vrProd.Caption := 'R$ 0,00';
+
+  //Timer1.Enabled := True;
+  FACBrBAL.Ativar;
 end;
 
 end.

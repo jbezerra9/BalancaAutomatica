@@ -26,6 +26,8 @@ object FrMensagem: TFrMensagem
     Height = 191
     Align = alTop
     BevelOuter = bvNone
+    Color = 1093886
+    ParentBackground = False
     TabOrder = 0
   end
   object Panel2: TPanel
@@ -36,7 +38,7 @@ object FrMensagem: TFrMensagem
     Align = alBottom
     Anchors = [akTop]
     BevelOuter = bvNone
-    Color = 6381921
+    Color = 1093886
     ParentBackground = False
     TabOrder = 1
     DesignSize = (
@@ -66,7 +68,7 @@ object FrMensagem: TFrMensagem
     Height = 129
     Align = alClient
     BevelOuter = bvNone
-    Color = 6381921
+    Color = 1093886
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWhite
     Font.Height = -67

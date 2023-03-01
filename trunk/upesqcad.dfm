@@ -26,18 +26,17 @@ object FPesqcad: TFPesqcad
     Align = alBottom
     BevelOuter = bvNone
     BorderWidth = 4
-    Color = 10778447
+    Color = 1093886
     ParentBackground = False
     TabOrder = 2
     Visible = False
-    ExplicitWidth = 588
     object dblDadoAdicional: TDBText
       Left = 4
       Top = 4
       Width = 657
       Height = 39
       Align = alClient
-      Color = 10778447
+      Color = 1093886
       Font.Charset = ANSI_CHARSET
       Font.Color = clWhite
       Font.Height = -11
@@ -56,11 +55,10 @@ object FPesqcad: TFPesqcad
     Height = 43
     Align = alTop
     BevelOuter = bvNone
-    Color = 10778447
+    Color = 1093886
     ParentBackground = False
     TabOrder = 0
     OnResize = Panel1Resize
-    ExplicitWidth = 588
     object lbpes: TLabel
       Left = 3
       Top = 3
@@ -98,7 +96,6 @@ object FPesqcad: TFPesqcad
     BorderWidth = 3
     Color = 15395562
     TabOrder = 1
-    ExplicitWidth = 588
     object dbgpes: TDBGrid
       Left = 3
       Top = 3
@@ -135,11 +132,10 @@ object FPesqcad: TFPesqcad
     Height = 42
     Align = alTop
     BevelOuter = bvNone
-    Color = 10778447
+    Color = 1093886
     ParentBackground = False
     TabOrder = 3
     Visible = False
-    ExplicitWidth = 588
     object Label1: TLabel
       Left = 3
       Top = 4

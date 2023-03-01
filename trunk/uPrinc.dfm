@@ -5690,8 +5690,7 @@ object fPrinc: TfPrinc
       C9A9A60A3516F155EA0CE73CCD9B717392621E2F51789ABF57328679A84BD400
       2AE36C2519160A65A8B2DCCBCD4567FFD9}
     Stretch = True
-    ExplicitWidth = 866
-    ExplicitHeight = 584
+    ExplicitTop = -8
   end
   object pnlTitulo: TPanel
     Left = 0
@@ -5705,12 +5704,14 @@ object fPrinc: TfPrinc
       Width = 470
       Height = 57
       Alignment = taCenter
-      Caption = 'Balan'#231'a Automatica'
+      Caption = 'Balan'#231'a Autom'#225'tica'
+      Color = clWhite
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindow
+      Font.Color = clWhite
       Font.Height = -47
       Font.Name = 'Tahoma'
       Font.Style = [fsBold]
+      ParentColor = False
       ParentFont = False
     end
   end
@@ -5845,7 +5846,7 @@ object fPrinc: TfPrinc
   end
   object Timer1: TTimer
     Enabled = False
-    Interval = 200
+    Interval = 500
     OnTimer = Timer1Timer
     Left = 72
     Top = 128

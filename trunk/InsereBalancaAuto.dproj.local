@@ -12,15 +12,15 @@
     <Transaction>2023/02/24 15:34:37.000.517,=C:\Projetos\InsereBalancaAutomatica\trunk\uFuncoes.pas</Transaction>
     <Transaction>2023/02/24 15:48:05.000.667,=C:\Projetos\InsereBalancaAutomatica\trunk\usplash.pas</Transaction>
     <Transaction>2023/02/24 16:52:33.000.951,=C:\Projetos\InsereBalancaAutomatica\trunk\upesqcad.pas</Transaction>
-    <Transaction>2023/02/27 08:20:56.144,=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.pas</Transaction>
-    <Transaction>2023/02/27 08:28:51.928,C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.pad.pas=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.pas</Transaction>
-    <Transaction>2023/02/27 08:28:51.928,C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.pad.dfm=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.dfm</Transaction>
-    <Transaction>2023/02/27 09:39:49.432,C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.pas=C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.pad.pas</Transaction>
-    <Transaction>2023/02/27 09:39:49.432,C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.dfm=C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.pad.dfm</Transaction>
-    <Transaction>2023/02/27 10:58:23.740,=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.pas</Transaction>
-    <Transaction>2023/02/27 11:06:18.946,C:\Projetos\InsereBalancaAutomatica\trunk\urelPagamento.pas=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.pas</Transaction>
-    <Transaction>2023/02/27 11:06:18.946,C:\Projetos\InsereBalancaAutomatica\trunk\urelPagamento.dfm=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.dfm</Transaction>
-    <Transaction>2023/02/27 15:25:52.431,=C:\Projetos\InsereBalancaAutomatica\trunk\ULoginUsuario.pas</Transaction>
-    <Transaction>2023/02/27 15:31:53.940,C:\Projetos\InsereBalancaAutomatica\trunk\ULoginUsuario.pas=</Transaction>
+    <Transaction>2023/02/27 08:20:56.000.144,=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.pas</Transaction>
+    <Transaction>2023/02/27 08:28:51.000.928,C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.pad.pas=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.pas</Transaction>
+    <Transaction>2023/02/27 08:28:51.000.928,C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.pad.dfm=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.dfm</Transaction>
+    <Transaction>2023/02/27 09:39:49.000.432,C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.pas=C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.pad.pas</Transaction>
+    <Transaction>2023/02/27 09:39:49.000.432,C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.dfm=C:\Projetos\InsereBalancaAutomatica\trunk\uselecionaprod.pad.dfm</Transaction>
+    <Transaction>2023/02/27 10:58:23.000.740,=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.pas</Transaction>
+    <Transaction>2023/02/27 11:06:18.000.946,C:\Projetos\InsereBalancaAutomatica\trunk\urelPagamento.pas=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.pas</Transaction>
+    <Transaction>2023/02/27 11:06:18.000.946,C:\Projetos\InsereBalancaAutomatica\trunk\urelPagamento.dfm=C:\Projetos\InsereBalancaAutomatica\trunk\Unit1.dfm</Transaction>
+    <Transaction>2023/02/27 15:25:52.000.431,=C:\Projetos\InsereBalancaAutomatica\trunk\ULoginUsuario.pas</Transaction>
+    <Transaction>2023/02/27 15:31:53.000.940,C:\Projetos\InsereBalancaAutomatica\trunk\ULoginUsuario.pas=</Transaction>
   </Transactions>
 </BorlandProject>

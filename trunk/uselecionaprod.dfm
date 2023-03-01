@@ -23,10 +23,9 @@ object fSelecionaProd: TfSelecionaProd
     Width = 1224
     Height = 787
     Align = alClient
-    Color = 33023
+    Color = 1093886
     ParentBackground = False
     TabOrder = 0
-    ExplicitHeight = 822
     object lbSelecione: TLabel
       Left = 400
       Top = 56
