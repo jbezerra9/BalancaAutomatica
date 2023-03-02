@@ -3,7 +3,7 @@ object FSplash: TFSplash
   Top = 199
   AutoSize = True
   BorderStyle = bsNone
-  Caption = 'Bitbyte ERP'
+  Caption = 'BBI food Balan'#231'a Automatica'
   ClientHeight = 320
   ClientWidth = 320
   Color = clBtnFace

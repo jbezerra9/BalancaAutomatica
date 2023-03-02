@@ -79,6 +79,13 @@ begin
       if pausa > 0 then
         Sleep(pausa * 1000);
 end;
+procedure TfPrinc.Timer1Timer(Sender: TObject);
+begin
+    FACBrBAL.Desativar;
+    FACBrBAL.LePeso(2000);
+    FAcbrBAL.Ativar;
+end;
+
 function TfPrinc.lerBalanca(Peso: Double): Boolean;
 begin
     if (Arredondar(Peso,3) = Arredondar(PesoAnterior,3))
@@ -94,7 +101,7 @@ begin
 
   PesoAnterior := Peso;
 
-  MensagemMemo('Aguarde', 'Lendo balança...', ' ', clYellow, 0, 3);
+  MensagemMemo(' ', 'Aguarde', 'Lendo balança...', clYellow, 0, 3);
 
   sqlcon.Close;
   sqlcon.SQL.Text := 'select tbprod.descricao, tbprod.pvendaa, ' +
@@ -123,6 +130,9 @@ begin
   cdsProdUN.AsString := sqlcon.FieldByName('un').AsString;
   cdsProd.Post;
 
+  MensagemMemo(' ', 'Leitura concluída!', 'Por favor retire seu prato.',
+                clLime, peso, 0);
+
   try
     application.CreateForm(Tfrelpagamento, frelpagamento);
     frelpagamento.rlNomeEmp.Lines.Add(IfThen(dm.tbempEMPRESA.AsString = '',
@@ -132,36 +142,16 @@ begin
   finally
     freeAndNil(frelpagamento);
   end;
-
-  MensagemMemo(' ', 'Leitura concluída!', 'Por favor retire seu prato.',
-                clLime, peso, 2);
-
-  FACBrBAL.Desativar;
-  FACBrBAL.Ativar;
-  FACBrBAL.LePeso(2000);
-end;
-
-procedure TfPrinc.Timer1Timer(Sender: TObject);
-begin
-  FACBrBAL.Ativar;
-  FACBrBAL.LePeso(2000);
-  FACBrBAL.Desativar;
 end;
 
 procedure TfPrinc.FACBrBALLePeso(Peso: Double; Resposta: AnsiString);
 begin
-  if Peso = 0.000 then
+  if Peso <= 0.000 then
   begin
     BalancaPronta := True;
     PesoAnterior  := 0.000;
 
     MensagemMemo(' ', 'Balança pronta.', 'Coloque o seu prato!', clLime, 0, 0);
-  end
-
-  else if Peso = -9 then
-  begin
-      Timer1.Enabled := False;
-      Timer1.Enabled := True;
   end
 
   else if Peso > 0 then
@@ -171,7 +161,7 @@ end;
 procedure TfPrinc.FormDestroy(Sender: TObject);
 begin
   // Desconecta da balança e libera o objeto
-  FACBrBAL.Desativar;
+  freeAndNil(FACBrBAL);
   dm.tbemp.Close;
 end;
 
@@ -207,8 +197,10 @@ begin
   vrPeso.Caption := '0.00 kg';
   vrProd.Caption := 'R$ 0,00';
 
-  Timer1.Enabled := True;
+  Application.Title := 'Balança Automatica';
+
   BalancaPronta := true;
+  FACBrBAL.Ativar;
 end;
 
 end.

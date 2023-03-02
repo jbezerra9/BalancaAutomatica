@@ -4,8 +4,11 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.StrUtils ,System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Data.FMTBcd,
-  Data.DB, Data.SqlExpr, Datasnap.DBClient;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Data.FMTBcd, ACBrDeviceSerial,
+  Data.DB, Data.SqlExpr, Datasnap.DBClient, Vcl.Buttons, ACBrBase, ACBrBAL, ACBrDevice;
+
+Const
+  InputBoxMessage = WM_USER + 200;
 
 type
   TfSelecionaProd = class(TForm)
@@ -16,15 +19,82 @@ type
     lbSelecione: TLabel;
     btAnterior: TButton;
     btProx: TButton;
+    pnlConfig: TPanel;
+    gbBalanca: TGroupBox;
+    lbQtdBalanca: TLabel;
+    rgUsaBalanca: TRadioGroup;
+    gbConfigBalanca: TGroupBox;
+    lbBalanca: TLabel;
+    lbModelo: TLabel;
+    lbPortaSerial: TLabel;
+    lbBaudRate: TLabel;
+    lbDataBits: TLabel;
+    lbParity: TLabel;
+    lbHandshaking: TLabel;
+    lbStopBits: TLabel;
+    lbTimeOut: TLabel;
+    edTimeOut3: TEdit;
+    edTimeOut2: TEdit;
+    cbStopBits3: TComboBox;
+    cbParity3: TComboBox;
+    cbHandShaking3: TComboBox;
+    cbDataBits3: TComboBox;
+    cbBaudRate3: TComboBox;
+    cbPortaSerial3: TComboBox;
+    cbModelo3: TComboBox;
+    cbHandShaking2: TComboBox;
+    cbStopBits2: TComboBox;
+    cbParity2: TComboBox;
+    cbDataBits2: TComboBox;
+    cbBaudRate2: TComboBox;
+    cbPortaSerial2: TComboBox;
+    cbModelo2: TComboBox;
+    cbBalanca: TComboBox;
+    Panel2: TPanel;
+    cbModelo1: TComboBox;
+    cbPortaSerial1: TComboBox;
+    cbBaudRate1: TComboBox;
+    cbDataBits1: TComboBox;
+    cbHandShaking1: TComboBox;
+    cbParity1: TComboBox;
+    cbStopBits1: TComboBox;
+    edTimeOut1: TEdit;
+    Panel7: TPanel;
+    btTestePeso: TButton;
+    edTestePeso: TEdit;
+    cbQtdBalanca: TComboBox;
+    cbLayoutTelaBalanca: TComboBox;
+    btConfig: TSpeedButton;
+    brSalvar: TButton;
+    btTestarValorUnitario: TButton;
+    edValorUnitarioTeste: TEdit;
+    lbValorUnitarioTeste: TLabel;
+    edCompletarDig: TEdit;
+    edQtdDigitos: TEdit;
+    lbCompletarDig: TLabel;
+    lbQtdDigitos: TLabel;
+    edComandoFinal: TEdit;
+    edComandoInicial: TEdit;
+    lbComandoFinal: TLabel;
+    lbComandoInicial: TLabel;
+    ACBrBAL: TACBrBAL;
+    cbEVrUnit: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure btAnteriorClick(Sender: TObject);
     procedure btProxClick(Sender: TObject);
+    procedure btConfigClick(Sender: TObject);
+    procedure brSalvarClick(Sender: TObject);
+    procedure rgUsaBalancaClick(Sender: TObject);
+    procedure cbBalancaChange(Sender: TObject);
+    procedure btTestarValorUnitarioClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     ultBtnGrup, ultBtnProd, ultBtnGrup_Caption, ultBtnGrupEve: String;
 
-    iQtdMesclar, iMesa, sNum, seqItemProdCombo, auxIDCombo, pagGrup, pagProd,
+    iQtdMesclar, iMesa, sNum, seqItemProdCombo, auxIDCombo, pagGrup, pagProd, TimeOut,
     ultPagGrup, ultPagProd, limitGrup, limitProd, nColunasProd, auxQtdMesc, skip: integer;
+    procedure InputBoxSetPasswordChar(var Msg: TMessage); message InputBoxMessage;
   public
     { Public declarations }
 
@@ -39,6 +109,8 @@ type
     bt_Prod_InfoValor : Boolean;
 
     procedure CriaBotoesProdutos(sTipo : String);
+    procedure ConfigComponenteBalanca;
+    procedure CarregaBal;
     procedure ClickBtnProduto(Sender: TObject);
   end;
 
@@ -56,6 +128,64 @@ implementation
 {$R *.dfm}
 
 uses uFuncoes, uModulo, uPrinc;
+
+procedure TfSelecionaProd.CarregaBal;
+begin
+     cbEVrUnit.Checked               := dm.FiniParam.ReadBool(  'Balanca', 'EnviaVrUnit',    False);
+     edComandoInicial.Text           := dm.FiniParam.ReadString('Balanca', 'ComandoInicial', '2');
+     edComandoFinal.Text             := dm.FiniParam.ReadString('Balanca', 'ComandoFinal',   '3');
+     edQtdDigitos.Text               := dm.FiniParam.ReadString('Balanca', 'QtdDigitos',     '6');
+     edCompletarDig.Text             := dm.FiniParam.ReadString('Balanca', 'CompletarDig',   '0');
+
+     cbModelo1.ItemIndex      := dm.FiniParam.ReadInteger('Balanca1','Modelo',2);
+     cbPortaSerial1.ItemIndex := cbPortaSerial1.Items.IndexOf(
+                                 dm.FiniParam.ReadString( 'Balanca1','Porta','COM1'));
+     cbBaudRate1.ItemIndex    := cbBaudRate1.Items.IndexOf(
+                                 dm.FiniParam.ReadString( 'Balanca1','BaudRate','2400'));
+     cbDataBits1.ItemIndex    := cbDataBits1.Items.IndexOf(
+                                 dm.FiniParam.ReadString('Balanca1','DataBits','8'));
+     cbParity1.ItemIndex      := dm.FiniParam.ReadInteger('Balanca1','Paridade',0);
+     cbStopBits1.ItemIndex    := dm.FiniParam.ReadInteger('Balanca1','StopBits',0);
+     cbHandShaking1.ItemIndex := dm.FiniParam.ReadInteger('Balanca1','HandShaking',0);
+     edTimeOut1.Text          := dm.FiniParam.ReadString( 'Balanca1','TimeOut','2000');
+
+
+     cbModelo2.ItemIndex      := dm.FiniParam.ReadInteger('Balanca2','Modelo',2);
+     cbPortaSerial2.ItemIndex := cbPortaSerial1.Items.IndexOf(
+                                 dm.FiniParam.ReadString( 'Balanca2','Porta','COM1'));
+     cbBaudRate2.ItemIndex    := cbBaudRate1.Items.IndexOf(
+                                 dm.FiniParam.ReadString( 'Balanca2','BaudRate','2400'));
+     cbDataBits2.ItemIndex    := cbDataBits1.Items.IndexOf(
+                                 dm.FiniParam.ReadString('Balanca2','DataBits','8'));
+     cbParity2.ItemIndex      := dm.FiniParam.ReadInteger('Balanca2','Paridade',0);
+     cbStopBits2.ItemIndex    := dm.FiniParam.ReadInteger('Balanca2','StopBits',0);
+     cbHandShaking2.ItemIndex := dm.FiniParam.ReadInteger('Balanca2','HandShaking',0);
+     edTimeOut2.Text          := dm.FiniParam.ReadString( 'Balanca2','TimeOut','2000');
+
+
+     cbModelo3.ItemIndex      := dm.FiniParam.ReadInteger('Balanca3','Modelo',2);
+     cbPortaSerial3.ItemIndex := cbPortaSerial1.Items.IndexOf(
+                                 dm.FiniParam.ReadString( 'Balanca3','Porta','COM1'));
+     cbBaudRate3.ItemIndex    := cbBaudRate1.Items.IndexOf(
+                                 dm.FiniParam.ReadString( 'Balanca3','BaudRate','2400'));
+     cbDataBits3.ItemIndex    := cbDataBits1.Items.IndexOf(
+                                 dm.FiniParam.ReadString('Balanca3','DataBits','8'));
+     cbParity3.ItemIndex      := dm.FiniParam.ReadInteger('Balanca3','Paridade',0);
+     cbStopBits3.ItemIndex    := dm.FiniParam.ReadInteger('Balanca3','StopBits',0);
+     cbHandShaking3.ItemIndex := dm.FiniParam.ReadInteger('Balanca3','HandShaking',0);
+     edTimeOut3.Text          := dm.FiniParam.ReadString( 'Balanca3','TimeOut','2000');
+end;
+procedure TFSelecionaProd.InputBoxSetPasswordChar(var Msg: TMessage);
+var
+     hInputForm, hEdit: HWND;
+begin
+     hInputForm := Screen.Forms[0].Handle;
+     if (hInputForm <> 0) then
+     begin
+          hEdit := FindWindowEx(hInputForm, 0, 'TEdit', nil);
+          SendMessage(hEdit, EM_SETPASSWORDCHAR, Ord('*'), 0);
+     end;
+end;
 
 procedure TFSelecionaProd.CriaBotoesProdutos(sTipo : String);
 var
@@ -167,14 +297,219 @@ begin
      end;
 end;
 
+procedure TFSelecionaProd.ConfigComponenteBalanca;
+begin
+     if cbBalanca.ItemIndex = 0 then
+     begin
+          try
+               ACBrBAL.Modelo           := TACBrBALModelo(cbModelo1.ItemIndex);
+               ACBrBAL.Device.Porta     := cbPortaSerial1.Text;
+               ACBrBAL.Device.Baud      := StrToInt(cbBaudRate1.Text);
+               ACBrBAL.Device.Data      := StrToInt(cbDataBits1.Text);
+               ACBrBAL.Device.Parity    := TACBrSerialParity(cbParity1.ItemIndex);
+               ACBrBAL.Device.Stop      := TACBrSerialStop(cbStopBits1.ItemIndex);
+               ACBrBAL.Device.HandShake := TACBrHandShake(cbHandShaking1.ItemIndex);
+               try
+                    TimeOut := StrToInt(edTimeOut1.Text);
+               except
+                    TimeOut := 2000;
+               end;
+          except
+               Application.MessageBox(PChar(
+                    'Verifique as configurações da Balanca1 nos parâmetros.'),
+                    'Erro ao configurar balança.',MB_ICONERROR);
+               Exit;
+          end;
+     end
+     else if cbBalanca.ItemIndex = 1 then
+     begin
+          try
+               ACBrBAL.Modelo           := TACBrBALModelo(cbModelo2.ItemIndex);
+               ACBrBAL.Device.Porta     := cbPortaSerial2.Text;
+               ACBrBAL.Device.Baud      := StrToInt(cbBaudRate2.Text);
+               ACBrBAL.Device.Data      := StrToInt(cbDataBits2.Text);
+               ACBrBAL.Device.Parity    := TACBrSerialParity(cbParity2.ItemIndex);
+               ACBrBAL.Device.Stop      := TACBrSerialStop(cbStopBits2.ItemIndex);
+               ACBrBAL.Device.HandShake := TACBrHandShake(cbHandShaking2.ItemIndex);
+               try
+                    TimeOut := StrToInt(edTimeOut2.Text);
+               except
+                    TimeOut := 2000;
+               end;
+          except
+               Application.MessageBox(PChar(
+                    'Verifique as configurações da Balanca2 nos parâmetros.'),
+                    'Erro ao configurar balança.',MB_ICONERROR);
+               Exit;
+          end;
+     end
+     else if cbBalanca.ItemIndex = 2 then
+     begin
+          try
+               ACBrBAL.Modelo           := TACBrBALModelo(cbModelo3.ItemIndex);
+               ACBrBAL.Device.Porta     := cbPortaSerial3.Text;
+               ACBrBAL.Device.Baud      := StrToInt(cbBaudRate3.Text);
+               ACBrBAL.Device.Data      := StrToInt(cbDataBits3.Text);
+               ACBrBAL.Device.Parity    := TACBrSerialParity(cbParity3.ItemIndex);
+               ACBrBAL.Device.Stop      := TACBrSerialStop(cbStopBits3.ItemIndex);
+               ACBrBAL.Device.HandShake := TACBrHandShake(cbHandShaking3.ItemIndex);
+               try
+                    TimeOut := StrToInt(edTimeOut3.Text);
+               except
+                    TimeOut := 2000;
+               end;
+          except
+               Application.MessageBox(PChar(
+                    'Verifique as configurações da Balanca3 nos parâmetros.'),
+                    'Erro ao configurar balança.',MB_ICONERROR);
+               Exit;
+          end;
+     end;
+end;
+
+procedure TfSelecionaProd.brSalvarClick(Sender: TObject);
+begin
+     dm.FiniParam.WriteBool   ('Balanca', 'EnviaVrUnit',    cbEVrUnit.Checked);
+     dm.FiniParam.WriteInteger('Balanca', 'ComandoInicial', StrToInt(edComandoInicial.Text));
+     dm.FiniParam.WriteInteger('Balanca', 'ComandoFinal',   StrToInt(edComandoFinal.Text));
+     dm.FiniParam.WriteInteger('Balanca', 'QtdDigitos',     StrToInt(edQtdDigitos.Text));
+     dm.FiniParam.WriteString ('Balanca', 'CompletarDig',   edCompletarDig.Text);
+
+     dm.FiniParam.WriteInteger('Balanca1', 'Modelo',      cbModelo1.ItemIndex);
+     dm.FiniParam.WriteString( 'Balanca1', 'Porta',       cbPortaSerial1.Text);
+     dm.FiniParam.WriteString( 'Balanca1', 'BaudRate',    cbBaudRate1.Text);
+     dm.FiniParam.WriteString( 'Balanca1', 'DataBits',    cbDataBits1.Text);
+     dm.FiniParam.WriteInteger('Balanca1', 'Paridade',    cbParity1.ItemIndex);
+     dm.FiniParam.WriteInteger('Balanca1', 'StopBits',    cbStopBits1.ItemIndex);
+     dm.FiniParam.WriteInteger('Balanca1', 'HandShaking', cbHandShaking1.ItemIndex);
+     dm.FiniParam.WriteString( 'Balanca1', 'TimeOut',     edTimeOut1.Text);
+
+     dm.FiniParam.WriteInteger('Balanca2', 'Modelo',      cbModelo2.ItemIndex);
+     dm.FiniParam.WriteString( 'Balanca2', 'Porta',       cbPortaSerial2.Text);
+     dm.FiniParam.WriteString( 'Balanca2', 'BaudRate',    cbBaudRate2.Text);
+     dm.FiniParam.WriteString( 'Balanca2', 'DataBits',    cbDataBits2.Text);
+     dm.FiniParam.WriteInteger('Balanca2', 'Paridade',    cbParity2.ItemIndex);
+     dm.FiniParam.WriteInteger('Balanca2', 'StopBits',    cbStopBits2.ItemIndex);
+     dm.FiniParam.WriteInteger('Balanca2', 'HandShaking', cbHandShaking2.ItemIndex);
+     dm.FiniParam.WriteString( 'Balanca2', 'TimeOut',     edTimeOut2.Text);
+
+     dm.FiniParam.WriteInteger('Balanca3', 'Modelo',      cbModelo3.ItemIndex);
+     dm.FiniParam.WriteString( 'Balanca3', 'Porta',       cbPortaSerial3.Text);
+     dm.FiniParam.WriteString( 'Balanca3', 'BaudRate',    cbBaudRate3.Text);
+     dm.FiniParam.WriteString( 'Balanca3', 'DataBits',    cbDataBits3.Text);
+     dm.FiniParam.WriteInteger('Balanca3', 'Paridade',    cbParity3.ItemIndex);
+     dm.FiniParam.WriteInteger('Balanca3', 'StopBits',    cbStopBits3.ItemIndex);
+     dm.FiniParam.WriteInteger('Balanca3', 'HandShaking', cbHandShaking3.ItemIndex);
+     dm.FiniParam.WriteString( 'Balanca3', 'TimeOut',     edTimeOut3.Text);
+
+     pnlConfig.Width := 39;
+     pnlConfig.Color := $0010B0FE;
+end;
+
 procedure TfSelecionaProd.btAnteriorClick(Sender: TObject);
 begin
     skip := skip - 21;
 end;
 
+procedure TfSelecionaProd.btConfigClick(Sender: TObject);
+var sSenha : string;
+begin
+     sSenha := '';
+
+     if pnlConfig.Width = 224 then
+     begin
+          pnlConfig.Width := 39;
+          pnlConfig.Color := $0010B0FE;
+          exit;
+     end;
+
+     PostMessage(Handle, InputBoxMessage, 0, 0);
+     if InputQuery('Senha de acesso','Senha',sSenha) = False then
+          Exit;
+
+     if sSenha <> 'adm%bbi' then
+     begin
+          Application.MessageBox('Senha inválida.','Atenção',MB_ICONEXCLAMATION);
+          Exit;
+     end;
+
+     if pnlConfig.Width < 224 then
+     begin
+          pnlConfig.Width := 224;
+          pnlConfig.Color := $00F0F0F0;
+     end
+end;
+
 procedure TfSelecionaProd.btProxClick(Sender: TObject);
 begin
       skip := skip + 21;
+end;
+
+procedure TfSelecionaProd.btTestarValorUnitarioClick(Sender: TObject);
+var
+     iComandoInicial, iComandoFinal, iQtdDigitos, x : Integer;
+     sCompletaDig, sFormataDigito, sValorEnviar, sComando : String;
+     cValor : Currency;
+begin
+     iComandoInicial := StrToInt(edComandoInicial.Text);
+     iComandoFinal   := StrToInt(edComandoFinal.Text);
+
+     iQtdDigitos  := StrToInt(edQtdDigitos.Text);
+     sCompletaDig := edCompletarDig.Text;
+     if Trim(sCompletaDig) = '' then
+          sCompletaDig := ' ';
+     for x := 1 to iQtdDigitos do
+          sFormataDigito := sFormataDigito + sCompletaDig;
+
+     sValorEnviar := edValorUnitarioTeste.Text;
+     cValor       := StrToCurr(AnsiReplaceStr(sValorEnviar,'.',''));
+     sValorEnviar := FormatCurr('#####0.00',cValor);
+     sValorEnviar := AnsiReplaceStr(AnsiReplaceStr(sValorEnviar,',',''),'.','');
+     sValorEnviar := RightStr(sFormataDigito + Trim(sValorEnviar), iQtdDigitos);
+
+     sComando := char(iComandoInicial) + sValorEnviar + char(iComandoFinal);
+
+     if ACBrBAL.Ativo then
+          ACBrBAL.Desativar;
+
+     ConfigComponenteBalanca;
+
+     ACBrBAL.Ativar;
+
+     ACBrBAL.Device.Limpar;
+     ACBrBAL.Device.EnviaString(sComando);
+
+     ACBrBAL.Desativar;
+end;
+
+procedure TfSelecionaProd.cbBalancaChange(Sender: TObject);
+begin
+     cbModelo1.Visible        := cbBalanca.ItemIndex = 0;
+     cbPortaSerial1.Visible   := cbBalanca.ItemIndex = 0;
+     cbBaudRate1.Visible      := cbBalanca.ItemIndex = 0;
+     cbDataBits1.Visible      := cbBalanca.ItemIndex = 0;
+     cbParity1.Visible        := cbBalanca.ItemIndex = 0;
+     cbStopBits1.Visible      := cbBalanca.ItemIndex = 0;
+     cbHandShaking1.Visible   := cbBalanca.ItemIndex = 0;
+     edTimeOut1.Visible       := cbBalanca.ItemIndex = 0;
+
+     cbModelo2.Visible        := cbBalanca.ItemIndex = 1;
+     cbPortaSerial2.Visible   := cbBalanca.ItemIndex = 1;
+     cbBaudRate2.Visible      := cbBalanca.ItemIndex = 1;
+     cbDataBits2.Visible      := cbBalanca.ItemIndex = 1;
+     cbParity2.Visible        := cbBalanca.ItemIndex = 1;
+     cbStopBits2.Visible      := cbBalanca.ItemIndex = 1;
+     cbHandShaking2.Visible   := cbBalanca.ItemIndex = 1;
+     edTimeOut2.Visible       := cbBalanca.ItemIndex = 1;
+
+     cbModelo3.Visible        := cbBalanca.ItemIndex = 2;
+     cbPortaSerial3.Visible   := cbBalanca.ItemIndex = 2;
+     cbBaudRate3.Visible      := cbBalanca.ItemIndex = 2;
+     cbDataBits3.Visible      := cbBalanca.ItemIndex = 2;
+     cbParity3.Visible        := cbBalanca.ItemIndex = 2;
+     cbStopBits3.Visible      := cbBalanca.ItemIndex = 2;
+     cbHandShaking3.Visible   := cbBalanca.ItemIndex = 2;
+     edTimeOut3.Visible       := cbBalanca.ItemIndex = 2;
 end;
 
 procedure TfSelecionaProd.ClickBtnProduto(Sender: TObject);
@@ -221,6 +556,11 @@ begin
      //showMessage('honda civic');
 end;
 
+procedure TfSelecionaProd.FormResize(Sender: TObject);
+begin
+    pnlConfig.Width := 39;
+end;
+
 procedure TfSelecionaProd.FormShow(Sender: TObject);
 begin
     bt_Prod_DivVert  := 127;
@@ -236,10 +576,80 @@ begin
 
     skip := 0;
 
+    pnlConfig.Width := 39;
+    pnlConfig.Color := $0010B0FE;
+
+    CarregaBal;
+
     if Assigned(fprinc) then
         CriaBotoesProdutos('and tbgrupo.descricao = '+ QuotedStr('BEBIDAS'))
     else
         CriaBotoesProdutos('and tbunmed.descricao = '+ QuotedStr('KG'));
+end;
+
+procedure TfSelecionaProd.rgUsaBalancaClick(Sender: TObject);
+begin
+     lbQtdBalanca.Enabled   := rgUsaBalanca.ItemIndex = 0;
+     cbQtdBalanca.Enabled   := rgUsaBalanca.ItemIndex = 0;
+
+     cbLayoutTelaBalanca.Enabled := (rgUsaBalanca.ItemIndex = 0) and
+                                    (cbQtdBalanca.ItemIndex = 0);
+
+     lbBalanca.Enabled      := rgUsaBalanca.ItemIndex = 0;
+     cbBalanca.Enabled      := rgUsaBalanca.ItemIndex = 0;
+
+     lbModelo.Enabled       := rgUsaBalanca.ItemIndex = 0;
+     lbPortaSerial.Enabled  := rgUsaBalanca.ItemIndex = 0;
+     lbBaudRate.Enabled     := rgUsaBalanca.ItemIndex = 0;
+     lbDataBits.Enabled     := rgUsaBalanca.ItemIndex = 0;
+     lbParity.Enabled       := rgUsaBalanca.ItemIndex = 0;
+     lbStopBits.Enabled     := rgUsaBalanca.ItemIndex = 0;
+     lbHandshaking.Enabled  := rgUsaBalanca.ItemIndex = 0;
+     lbTimeOut.Enabled      := rgUsaBalanca.ItemIndex = 0;
+
+     cbModelo1.Enabled      := rgUsaBalanca.ItemIndex = 0;
+     cbPortaSerial1.Enabled := rgUsaBalanca.ItemIndex = 0;
+     cbBaudRate1.Enabled    := rgUsaBalanca.ItemIndex = 0;
+     cbDataBits1.Enabled    := rgUsaBalanca.ItemIndex = 0;
+     cbParity1.Enabled      := rgUsaBalanca.ItemIndex = 0;
+     cbStopBits1.Enabled    := rgUsaBalanca.ItemIndex = 0;
+     cbHandShaking1.Enabled := rgUsaBalanca.ItemIndex = 0;
+     edTimeOut1.Enabled     := rgUsaBalanca.ItemIndex = 0;
+
+     cbModelo2.Enabled      := rgUsaBalanca.ItemIndex = 0;
+     cbPortaSerial2.Enabled := rgUsaBalanca.ItemIndex = 0;
+     cbBaudRate2.Enabled    := rgUsaBalanca.ItemIndex = 0;
+     cbDataBits2.Enabled    := rgUsaBalanca.ItemIndex = 0;
+     cbParity2.Enabled      := rgUsaBalanca.ItemIndex = 0;
+     cbStopBits2.Enabled    := rgUsaBalanca.ItemIndex = 0;
+     cbHandShaking2.Enabled := rgUsaBalanca.ItemIndex = 0;
+     edTimeOut2.Enabled     := rgUsaBalanca.ItemIndex = 0;
+
+     cbModelo3.Enabled      := rgUsaBalanca.ItemIndex = 0;
+     cbPortaSerial3.Enabled := rgUsaBalanca.ItemIndex = 0;
+     cbBaudRate3.Enabled    := rgUsaBalanca.ItemIndex = 0;
+     cbDataBits3.Enabled    := rgUsaBalanca.ItemIndex = 0;
+     cbParity3.Enabled      := rgUsaBalanca.ItemIndex = 0;
+     cbStopBits3.Enabled    := rgUsaBalanca.ItemIndex = 0;
+     cbHandShaking3.Enabled := rgUsaBalanca.ItemIndex = 0;
+     edTimeOut3.Enabled     := rgUsaBalanca.ItemIndex = 0;
+
+     btTestePeso.Enabled    := rgUsaBalanca.ItemIndex = 0;
+     edTestePeso.Enabled    := rgUsaBalanca.ItemIndex = 0;
+
+     cbEVrUnit.Enabled               := rgUsaBalanca.ItemIndex = 0;
+
+     lbComandoInicial.Enabled        := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
+     edComandoInicial.Enabled        := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
+     lbComandoFinal.Enabled          := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
+     edComandoFinal.Enabled          := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
+     lbQtdDigitos.Enabled            := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
+     edQtdDigitos.Enabled            := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
+     lbCompletarDig.Enabled          := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
+     edCompletarDig.Enabled          := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
+     lbValorUnitarioTeste.Enabled    := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
+     edValorUnitarioTeste.Enabled    := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
+     btTestarValorUnitario.Enabled   := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
 end;
 
 end.

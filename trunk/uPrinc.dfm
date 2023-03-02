@@ -5696,14 +5696,22 @@ object fPrinc: TfPrinc
     Top = 0
     Width = 1229
     Height = 145
+    Caption = 'Balan'#231'a Autom'#225'tica'
+    Color = 1093886
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWhite
+    Font.Height = -47
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentBackground = False
+    ParentFont = False
     TabOrder = 0
     object lbBBifood: TLabel
       Left = 368
       Top = 52
-      Width = 470
+      Width = 14
       Height = 57
       Alignment = taCenter
-      Caption = 'Balan'#231'a Autom'#225'tica'
       Color = clWhite
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWhite
@@ -5790,19 +5798,19 @@ object fPrinc: TfPrinc
     TabOrder = 2
   end
   object FACBrBAL: TACBrBAL
-    Modelo = balToledo
+    Modelo = balFilizola
     Porta = 'COM2'
-    Intervalo = 2000
+    Intervalo = 1000
     OnLePeso = FACBrBALLePeso
-    Left = 32
-    Top = 24
+    Left = 272
+    Top = 8
   end
   object sqlcon: TSQLQuery
     MaxBlobSize = -1
     Params = <>
     SQLConnection = dm.conexao
-    Left = 104
-    Top = 40
+    Left = 344
+    Top = 24
   end
   object cdsProd: TClientDataSet
     Aggregates = <>
@@ -5839,14 +5847,12 @@ object fPrinc: TfPrinc
     MaxBlobSize = -1
     Params = <>
     SQLConnection = dm.conexao
-    Left = 112
-    Top = 48
+    Left = 352
+    Top = 32
   end
   object Timer1: TTimer
-    Enabled = False
-    Interval = 2500
     OnTimer = Timer1Timer
-    Left = 72
-    Top = 128
+    Left = 320
+    Top = 96
   end
 end
