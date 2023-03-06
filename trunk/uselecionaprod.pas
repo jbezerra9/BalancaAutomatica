@@ -430,6 +430,7 @@ end;
 procedure TfSelecionaProd.btAnteriorClick(Sender: TObject);
 begin
     skip := skip - 21;
+    CriaBotoesProdutos('and tbunmed.descricao = '+ QuotedStr('KG'));
 end;
 
 procedure TfSelecionaProd.btConfigClick(Sender: TObject);
@@ -473,6 +474,7 @@ end;
 procedure TfSelecionaProd.btProxClick(Sender: TObject);
 begin
       skip := skip + 21;
+      CriaBotoesProdutos('and tbunmed.descricao = '+ QuotedStr('KG'));
 end;
 
 procedure TfSelecionaProd.btSairClick(Sender: TObject);

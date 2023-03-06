@@ -2,6 +2,7 @@ object fPrinc: TfPrinc
   Left = 353
   Top = 93
   BorderIcons = [biSystemMenu, biMaximize]
+  BorderStyle = bsNone
   ClientHeight = 600
   ClientWidth = 1249
   Color = clBtnFace
@@ -5953,36 +5954,10 @@ object fPrinc: TfPrinc
     Left = 344
     Top = 24
   end
-  object cdsProd: TClientDataSet
-    Aggregates = <>
-    Params = <>
-    Left = 672
-    Top = 184
-    object cdsProdDescricao: TStringField
-      FieldName = 'Descricao'
-      Size = 50
-    end
-    object cdsProdqtd: TFloatField
-      FieldName = 'qtd'
-    end
-    object cdsProdVrTotal: TCurrencyField
-      FieldName = 'VrTotal'
-    end
-    object cdsProdUN: TStringField
-      FieldName = 'UN'
-      Size = 2
-    end
-    object cdsProdVrVenda: TCurrencyField
-      FieldName = 'VrVenda'
-    end
-    object cdsProdComanda: TStringField
-      FieldName = 'Comanda'
-    end
-  end
-  object dsProd: TDataSource
-    DataSet = cdsProd
-    Left = 632
-    Top = 184
+  object dsComandaItem: TDataSource
+    DataSet = cdsComandaItem
+    Left = 464
+    Top = 192
   end
   object sqlcon2: TSQLQuery
     MaxBlobSize = -1
@@ -5996,5 +5971,153 @@ object fPrinc: TfPrinc
     OnTimer = Timer1Timer
     Left = 320
     Top = 96
+  end
+  object sdsComandaItem: TSQLDataSet
+    GetMetadata = False
+    CommandText = 'select * from tbcomanda_item where comanda = 0'
+    MaxBlobSize = -1
+    Params = <>
+    SQLConnection = dm.conexao
+    Left = 462
+    Top = 148
+    object sdsComandaItemCOMANDA: TIntegerField
+      FieldName = 'COMANDA'
+    end
+    object sdsComandaItemCODPROD: TStringField
+      FieldName = 'CODPROD'
+      Size = 6
+    end
+    object sdsComandaItemCODPROD_2: TStringField
+      FieldName = 'CODPROD_2'
+    end
+    object sdsComandaItemDESCRICAO: TStringField
+      FieldName = 'DESCRICAO'
+      Size = 210
+    end
+    object sdsComandaItemQTD: TFloatField
+      FieldName = 'QTD'
+      ProviderFlags = [pfInUpdate]
+    end
+    object sdsComandaItemVR_UNIT: TFloatField
+      FieldName = 'VR_UNIT'
+      ProviderFlags = [pfInUpdate]
+    end
+    object sdsComandaItemFUNCIONARIO: TStringField
+      FieldName = 'FUNCIONARIO'
+      Size = 5
+    end
+    object sdsComandaItemID_INGRE: TIntegerField
+      FieldName = 'ID_INGRE'
+    end
+    object sdsComandaItemSEQ_ITEM: TIntegerField
+      FieldName = 'SEQ_ITEM'
+    end
+    object sdsComandaItemDATA: TDateField
+      FieldName = 'DATA'
+    end
+    object sdsComandaItemHORA: TTimeField
+      FieldName = 'HORA'
+    end
+    object sdsComandaItemCOMANDA_ANTERIOR: TIntegerField
+      FieldName = 'COMANDA_ANTERIOR'
+    end
+    object sdsComandaItemSEQ_PESO: TIntegerField
+      FieldName = 'SEQ_PESO'
+    end
+    object sdsComandaItemVIAGEM: TStringField
+      FieldName = 'VIAGEM'
+      FixedChar = True
+      Size = 1
+    end
+    object sdsComandaItemTAXAATENDIMENTO: TStringField
+      FieldName = 'TAXAATENDIMENTO'
+      Size = 1
+    end
+    object sdsComandaItemPROD_PAI: TIntegerField
+      FieldName = 'PROD_PAI'
+    end
+    object sdsComandaItemID_PIZZA: TIntegerField
+      FieldName = 'ID_PIZZA'
+    end
+    object sdsComandaItemIDTRANSACAO_EASYCHOPP: TStringField
+      FieldName = 'IDTRANSACAO_EASYCHOPP'
+      Size = 10
+    end
+  end
+  object dspComandaItem: TDataSetProvider
+    DataSet = sdsComandaItem
+    Options = [poAutoRefresh]
+    Left = 562
+    Top = 148
+  end
+  object cdsComandaItem: TClientDataSet
+    Aggregates = <>
+    Params = <>
+    ProviderName = 'dspComandaItem'
+    Left = 559
+    Top = 192
+    object cdsComandaItemCOMANDA: TIntegerField
+      FieldName = 'COMANDA'
+    end
+    object cdsComandaItemCODPROD: TStringField
+      FieldName = 'CODPROD'
+      Size = 6
+    end
+    object cdsComandaItemCODPROD_2: TStringField
+      FieldName = 'CODPROD_2'
+    end
+    object cdsComandaItemDESCRICAO: TStringField
+      FieldName = 'DESCRICAO'
+      Size = 210
+    end
+    object cdsComandaItemQTD: TFloatField
+      FieldName = 'QTD'
+      ProviderFlags = [pfInUpdate]
+    end
+    object cdsComandaItemVR_UNIT: TFloatField
+      FieldName = 'VR_UNIT'
+      ProviderFlags = [pfInUpdate]
+    end
+    object cdsComandaItemFUNCIONARIO: TStringField
+      FieldName = 'FUNCIONARIO'
+      Size = 5
+    end
+    object cdsComandaItemID_INGRE: TIntegerField
+      FieldName = 'ID_INGRE'
+    end
+    object cdsComandaItemSEQ_ITEM: TIntegerField
+      FieldName = 'SEQ_ITEM'
+    end
+    object cdsComandaItemDATA: TDateField
+      FieldName = 'DATA'
+    end
+    object cdsComandaItemHORA: TTimeField
+      FieldName = 'HORA'
+    end
+    object cdsComandaItemCOMANDA_ANTERIOR: TIntegerField
+      FieldName = 'COMANDA_ANTERIOR'
+    end
+    object cdsComandaItemSEQ_PESO: TIntegerField
+      FieldName = 'SEQ_PESO'
+    end
+    object cdsComandaItemVIAGEM: TStringField
+      FieldName = 'VIAGEM'
+      FixedChar = True
+      Size = 1
+    end
+    object cdsComandaItemTAXAATENDIMENTO: TStringField
+      FieldName = 'TAXAATENDIMENTO'
+      Size = 1
+    end
+    object cdsComandaItemPROD_PAI: TIntegerField
+      FieldName = 'PROD_PAI'
+    end
+    object cdsComandaItemID_PIZZA: TIntegerField
+      FieldName = 'ID_PIZZA'
+    end
+    object cdsComandaItemIDTRANSACAO_EASYCHOPP: TStringField
+      FieldName = 'IDTRANSACAO_EASYCHOPP'
+      Size = 10
+    end
   end
 end

@@ -46,8 +46,8 @@ object fSelecionaProd: TfSelecionaProd
       ParentFont = False
     end
     object btSair: TSpeedButton
-      Left = 24
-      Top = 22
+      Left = 18
+      Top = 16
       Width = 49
       Height = 49
       Flat = True
@@ -186,9 +186,9 @@ object fSelecionaProd: TfSelecionaProd
       OnClick = btSairClick
     end
     object pnlProdutos: TPanel
-      Left = 277
-      Top = 133
-      Width = 713
+      Left = 260
+      Top = 119
+      Width = 753
       Height = 404
       Color = clWhite
       ParentBackground = False

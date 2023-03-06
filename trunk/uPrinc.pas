@@ -7,7 +7,7 @@ uses
   System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Imaging.jpeg, Vcl.ExtCtrls,
   ACBrBase, ACBrBAL, Vcl.StdCtrls, Data.DB, Data.FMTBcd, Data.SqlExpr,
-  Datasnap.DBClient, RLReport, Vcl.Buttons, ACBrDeviceSerial;
+  Datasnap.DBClient, RLReport, Vcl.Buttons, ACBrDeviceSerial, Datasnap.Provider;
 
 type
   TfPrinc = class(TForm)
@@ -22,17 +22,49 @@ type
     Label2: TLabel;
     vrProd: TLabel;
     vrPeso: TLabel;
-    cdsProd: TClientDataSet;
-    cdsProdDescricao: TStringField;
-    cdsProdqtd: TFloatField;
-    cdsProdVrTotal: TCurrencyField;
-    cdsProdUN: TStringField;
-    cdsProdVrVenda: TCurrencyField;
-    dsProd: TDataSource;
-    cdsProdComanda: TStringField;
+    dsComandaItem: TDataSource;
     sqlcon2: TSQLQuery;
     Timer1: TTimer;
     btSair: TSpeedButton;
+    sdsComandaItem: TSQLDataSet;
+    sdsComandaItemCOMANDA: TIntegerField;
+    sdsComandaItemCODPROD: TStringField;
+    sdsComandaItemCODPROD_2: TStringField;
+    sdsComandaItemDESCRICAO: TStringField;
+    sdsComandaItemQTD: TFloatField;
+    sdsComandaItemVR_UNIT: TFloatField;
+    sdsComandaItemFUNCIONARIO: TStringField;
+    sdsComandaItemID_INGRE: TIntegerField;
+    sdsComandaItemSEQ_ITEM: TIntegerField;
+    sdsComandaItemDATA: TDateField;
+    sdsComandaItemHORA: TTimeField;
+    sdsComandaItemCOMANDA_ANTERIOR: TIntegerField;
+    sdsComandaItemSEQ_PESO: TIntegerField;
+    sdsComandaItemVIAGEM: TStringField;
+    sdsComandaItemTAXAATENDIMENTO: TStringField;
+    sdsComandaItemPROD_PAI: TIntegerField;
+    sdsComandaItemID_PIZZA: TIntegerField;
+    sdsComandaItemIDTRANSACAO_EASYCHOPP: TStringField;
+    dspComandaItem: TDataSetProvider;
+    cdsComandaItem: TClientDataSet;
+    cdsComandaItemCOMANDA: TIntegerField;
+    cdsComandaItemCODPROD: TStringField;
+    cdsComandaItemCODPROD_2: TStringField;
+    cdsComandaItemDESCRICAO: TStringField;
+    cdsComandaItemQTD: TFloatField;
+    cdsComandaItemVR_UNIT: TFloatField;
+    cdsComandaItemFUNCIONARIO: TStringField;
+    cdsComandaItemID_INGRE: TIntegerField;
+    cdsComandaItemSEQ_ITEM: TIntegerField;
+    cdsComandaItemDATA: TDateField;
+    cdsComandaItemHORA: TTimeField;
+    cdsComandaItemCOMANDA_ANTERIOR: TIntegerField;
+    cdsComandaItemSEQ_PESO: TIntegerField;
+    cdsComandaItemVIAGEM: TStringField;
+    cdsComandaItemTAXAATENDIMENTO: TStringField;
+    cdsComandaItemPROD_PAI: TIntegerField;
+    cdsComandaItemID_PIZZA: TIntegerField;
+    cdsComandaItemIDTRANSACAO_EASYCHOPP: TStringField;
     procedure FormDestroy(Sender: TObject);
     procedure FACBrBALLePeso(Peso: Double; Resposta: AnsiString);
     procedure FormShow(Sender: TObject);
@@ -127,6 +159,7 @@ begin
 end;
 
 function TfPrinc.lerBalanca(Peso: Double): Boolean;
+var codProdSalva1, codProdSalva2 : String;
 begin
     if (Arredondar(Peso,3) = Arredondar(PesoAnterior,3))
     or (Arredondar(Peso,3) = Arredondar(PesoAnterior + 0.002,3))
@@ -158,18 +191,34 @@ begin
   if sqlcon.IsEmpty then
     Exit;
 
-  cdsProd.EmptyDataSet;
+  codProdSalva1 := sCodProd;
 
-  cdsProd.Insert;
-  cdsProdDescricao.AsString := sqlcon.FieldByName('descricao').AsString;
-  cdsProdqtd.AsFloat := Peso;
-  cdsProdComanda.AsString := IntToStr(sqlcon2.FieldByName('comanda')
-    .AsInteger + 1);
-  cdsProdVrVenda.AsCurrency := sqlcon.FieldByName('pVendaa').AsCurrency;
-  cdsProdVrTotal.AsCurrency := sqlcon.FieldByName('vrTotal').AsCurrency;
-  cdsProdUN.AsString := sqlcon.FieldByName('un').AsString;
-  cdsProd.Post;
+  if (Parametro('TIPO_PESQ_CODPROD') = 'I')
+  or (Parametro('TIPO_PESQ_CODPROD') = 'P') then
+  begin
+       sCodProd := codProdSalva1;
+       codProdSalva2     := '';
+  end
+  else
+       if codProdSalva1 <> sCodProd then
+            codProdSalva2 := sCodProd
+       else
+            codProdSalva2 := '';
 
+  cdsComandaItem.Append;
+  cdsComandaItemCOMANDA.AsInteger          := sqlcon2.FieldByName('comanda').AsInteger + 1;
+  cdsComandaItemCODPROD.AsString           := codProdSalva1;
+  cdsComandaItemCODPROD_2.AsString         := codProdSalva2;
+  cdsComandaItemDESCRICAO.AsString         := sqlcon.FieldByName('descricao').AsString;
+  cdsComandaItemQTD.AsFloat                := Peso;
+  cdsComandaItemVR_UNIT.AsFloat            := sqlcon.FieldByName('vrTotal').AsFloat;
+  cdsComandaItemFUNCIONARIO.AsString       := '';
+  cdsComandaItemID_INGRE.AsInteger         := 0;
+  cdsComandaItemVIAGEM.AsString            := 'N';
+  cdsComandaItemTAXAATENDIMENTO.AsString   := 'N';
+
+  cdsComandaItem.Post;
+  cdsComandaItem.ApplyUpdates(-1);
 
   MensagemMemo(' ', 'Leitura concluída!', 'Por favor retire seu prato.',
                 clLime, peso, 0);
@@ -178,7 +227,7 @@ begin
     application.CreateForm(Tfrelpagamento, frelpagamento);
     frelpagamento.rlNomeEmp.Lines.Add(IfThen(dm.tbempEMPRESA.AsString = '',
       dm.tbempNOME.AsString, dm.tbempEMPRESA.AsString));
-    frelpagamento.rlComanda2.Caption := 'Comanda: ' + cdsProdComanda.AsString;
+    frelpagamento.rlComanda2.Caption := 'Comanda: ' + cdsComandaItemCOMANDA.AsString;
     frelpagamento.Imprimir;
   finally
     freeAndNil(frelpagamento);
@@ -187,6 +236,7 @@ end;
 
 procedure TfPrinc.btSairClick(Sender: TObject);
 begin
+    Timer1.enabled := false;
     close;
 end;
 
@@ -208,6 +258,7 @@ procedure TfPrinc.FormDestroy(Sender: TObject);
 begin
   // Desconecta da balança e libera o objeto
   freeAndNil(FACBrBAL);
+  cdsComandaItem.Close;
   dm.tbemp.Close;
 end;
 
@@ -217,14 +268,12 @@ begin
 end;
 
 procedure TfPrinc.FormShow(Sender: TObject);
-var
-  SQL: string;
 begin
   sCodProd := dm.sCodProd;
 
-  cdsProd.CreateDataSet;
+  //cdsProd.CreateDataSet;
   dm.tbemp.Open;
-
+  cdsComandaItem.Open;
 
   sqlcon.Close;
   sqlcon.SQL.Text := ' select pvendaa from tbprod where codigo = ' +
@@ -238,7 +287,6 @@ begin
   end;
 
   vrvenda := sqlcon.FieldByName('pvendaa').AsFloat;
-
 
   MensagemMemo('Balança pronta.', 'Coloque o seu prato!','', clLime, 0, 0);
 
