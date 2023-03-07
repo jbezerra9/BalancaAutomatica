@@ -188,8 +188,8 @@ object fSelecionaProd: TfSelecionaProd
     object pnlProdutos: TPanel
       Left = 260
       Top = 119
-      Width = 753
-      Height = 404
+      Width = 742
+      Height = 394
       Color = clWhite
       ParentBackground = False
       TabOrder = 0
@@ -377,8 +377,8 @@ object fSelecionaProd: TfSelecionaProd
       object gbBalanca: TGroupBox
         Left = 39
         Top = 6
-        Width = 185
-        Height = 578
+        Width = 188
+        Height = 626
         Caption = 'Configura'#231#245'es de Balan'#231'a'
         Color = 15790320
         Font.Charset = ANSI_CHARSET
@@ -392,7 +392,7 @@ object fSelecionaProd: TfSelecionaProd
         TabOrder = 0
         object lbQtdBalanca: TLabel
           Left = 54
-          Top = 54
+          Top = 105
           Width = 83
           Height = 14
           Caption = 'Qtd. de Balan'#231'as'
@@ -406,7 +406,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object lbValorUnitarioTeste: TLabel
           Left = 11
-          Top = 492
+          Top = 543
           Width = 118
           Height = 14
           Caption = 'Valor Unit'#225'rio para Teste'
@@ -414,7 +414,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object lbCompletarDig: TLabel
           Left = 107
-          Top = 452
+          Top = 503
           Width = 69
           Height = 14
           Caption = 'Completar Dig.'
@@ -422,7 +422,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object lbQtdDigitos: TLabel
           Left = 11
-          Top = 452
+          Top = 503
           Width = 55
           Height = 14
           Caption = 'Qtd. Digitos'
@@ -430,7 +430,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object lbComandoFinal: TLabel
           Left = 107
-          Top = 412
+          Top = 463
           Width = 70
           Height = 14
           Caption = 'Comando Final'
@@ -438,7 +438,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object lbComandoInicial: TLabel
           Left = 11
-          Top = 412
+          Top = 463
           Width = 74
           Height = 14
           Caption = 'Comando Inicial'
@@ -446,8 +446,8 @@ object fSelecionaProd: TfSelecionaProd
         end
         object rgUsaBalanca: TRadioGroup
           Left = 6
-          Top = 15
-          Width = 173
+          Top = 66
+          Width = 177
           Height = 41
           Caption = 'Utiliza Balan'#231'a venda'
           Columns = 2
@@ -466,8 +466,8 @@ object fSelecionaProd: TfSelecionaProd
         end
         object gbConfigBalanca: TGroupBox
           Left = 6
-          Top = 94
-          Width = 173
+          Top = 145
+          Width = 177
           Height = 291
           TabOrder = 2
           object lbBalanca: TLabel
@@ -1107,7 +1107,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object cbQtdBalanca: TComboBox
           Left = 78
-          Top = 74
+          Top = 125
           Width = 41
           Height = 19
           Style = csOwnerDrawFixed
@@ -1124,7 +1124,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object btTestarValorUnitario: TButton
           Left = 11
-          Top = 540
+          Top = 591
           Width = 129
           Height = 25
           Caption = 'Testar Valor Unit'#225'rio'
@@ -1134,7 +1134,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object edValorUnitarioTeste: TEdit
           Left = 11
-          Top = 508
+          Top = 559
           Width = 129
           Height = 22
           Enabled = False
@@ -1143,7 +1143,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object edCompletarDig: TEdit
           Left = 107
-          Top = 468
+          Top = 519
           Width = 33
           Height = 22
           Enabled = False
@@ -1153,7 +1153,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object edQtdDigitos: TEdit
           Left = 11
-          Top = 468
+          Top = 519
           Width = 33
           Height = 22
           Enabled = False
@@ -1163,7 +1163,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object edComandoFinal: TEdit
           Left = 107
-          Top = 428
+          Top = 479
           Width = 33
           Height = 22
           Enabled = False
@@ -1173,7 +1173,7 @@ object fSelecionaProd: TfSelecionaProd
         end
         object edComandoInicial: TEdit
           Left = 11
-          Top = 428
+          Top = 479
           Width = 33
           Height = 22
           Enabled = False
@@ -1183,17 +1183,54 @@ object fSelecionaProd: TfSelecionaProd
         end
         object cbEVrUnit: TCheckBox
           Left = 12
-          Top = 391
+          Top = 442
           Width = 141
           Height = 17
           Caption = 'Enviar Valor Unit'#225'rio'
           Enabled = False
           TabOrder = 9
         end
+        object GroupBox1: TGroupBox
+          Left = 6
+          Top = 16
+          Width = 177
+          Height = 46
+          Caption = 'Intervalo de comandas da balan'#231'a'
+          TabOrder = 10
+          object Label1: TLabel
+            Left = 84
+            Top = 19
+            Width = 7
+            Height = 16
+            Caption = #224
+            Font.Charset = ANSI_CHARSET
+            Font.Color = clWindowText
+            Font.Height = -13
+            Font.Name = 'Arial'
+            Font.Style = []
+            ParentFont = False
+          end
+          object edComandaIni1: TEdit
+            Left = 12
+            Top = 17
+            Width = 61
+            Height = 22
+            TabOrder = 0
+            OnKeyPress = edComandaIni1KeyPress
+          end
+          object edComandaFin1: TEdit
+            Left = 102
+            Top = 17
+            Width = 61
+            Height = 22
+            TabOrder = 1
+            OnKeyPress = edComandaFin1KeyPress
+          end
+        end
       end
       object brSalvar: TButton
         Left = 80
-        Top = 590
+        Top = 638
         Width = 89
         Height = 25
         Caption = '&Salvar'

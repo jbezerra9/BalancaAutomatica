@@ -79,6 +79,10 @@ type
     ACBrBAL: TACBrBAL;
     cbEVrUnit: TCheckBox;
     btSair: TSpeedButton;
+    GroupBox1: TGroupBox;
+    edComandaIni1: TEdit;
+    edComandaFin1: TEdit;
+    Label1: TLabel;
     procedure FormShow(Sender: TObject);
     procedure btAnteriorClick(Sender: TObject);
     procedure btProxClick(Sender: TObject);
@@ -94,13 +98,18 @@ type
     procedure ACBrBALLePeso(Peso: Double; Resposta: AnsiString);
     procedure edPrecoKGKeyPress(Sender: TObject; var Key: Char);
     procedure SpeedButton1Click(Sender: TObject);
+    procedure edComandaIni1KeyPress(Sender: TObject; var Key: Char);
+    procedure edComandaFin1KeyPress(Sender: TObject; var Key: Char);
   private
     { Private declarations }
-    ultBtnProd, ultBtnGrupEve: String;
-
-    iQtdMesclar, iMesa, sNum, seqItemProdCombo, auxIDCombo, pagGrup, pagProd, TimeOut,
-    ultPagGrup, ultPagProd, limitGrup, limitProd, nColunasProd, auxQtdMesc, skip: integer;
+    ultBtnProd: String;
+    pagProd, TimeOut, ultPagGrup, limitGrup, nColunasProd, skip: integer;
     procedure InputBoxSetPasswordChar(var Msg: TMessage); message InputBoxMessage;
+    procedure CriaBotoesProdutos(sTipo : String);
+    procedure ConfigComponenteBalanca;
+    procedure CarregaBal;
+    procedure ClickBtnProduto(Sender: TObject);
+    procedure ConsultaCaixa;
   public
     { Public declarations }
 
@@ -113,11 +122,6 @@ type
 
     bt_Prod_MaxCaracteres : Integer;
     bt_Prod_InfoValor : Boolean;
-
-    procedure CriaBotoesProdutos(sTipo : String);
-    procedure ConfigComponenteBalanca;
-    procedure CarregaBal;
-    procedure ClickBtnProduto(Sender: TObject);
   end;
 
 var
@@ -134,6 +138,22 @@ implementation
 {$R *.dfm}
 
 uses uFuncoes, uModulo, uPrinc;
+
+procedure TfSelecionaProd.ConsultaCaixa;
+begin
+    sqlcon.Close;
+    sqlcon.SQL.Text := 'select * '+
+                       'from tbcaixa '+
+                       'where aberto = ''S'' ';
+                      // 'and data = ' + QuotedStr(FormatDateTime('mm/dd/yyyy',Date));
+    sqlcon.Open;
+
+    if sqlcon.IsEmpty then
+    begin
+        Application.MessageBox('Abra o caixa antes de utilizar a balança automática','Atenção', mb_ok + mb_iconexclamation);
+        Abort;
+    end
+end;
 
 procedure TfSelecionaProd.CarregaBal;
 begin
@@ -158,7 +178,6 @@ begin
      cbHandShaking1.ItemIndex := dm.FiniParam.ReadInteger('Balanca1','HandShaking',0);
      edTimeOut1.Text          := dm.FiniParam.ReadString( 'Balanca1','TimeOut','2000');
 
-
      cbModelo2.ItemIndex      := dm.FiniParam.ReadInteger('Balanca2','Modelo',2);
      cbPortaSerial2.ItemIndex := cbPortaSerial1.Items.IndexOf(
                                  dm.FiniParam.ReadString( 'Balanca2','Porta','COM1'));
@@ -171,7 +190,6 @@ begin
      cbHandShaking2.ItemIndex := dm.FiniParam.ReadInteger('Balanca2','HandShaking',0);
      edTimeOut2.Text          := dm.FiniParam.ReadString( 'Balanca2','TimeOut','2000');
 
-
      cbModelo3.ItemIndex      := dm.FiniParam.ReadInteger('Balanca3','Modelo',2);
      cbPortaSerial3.ItemIndex := cbPortaSerial1.Items.IndexOf(
                                  dm.FiniParam.ReadString( 'Balanca3','Porta','COM1'));
@@ -183,6 +201,9 @@ begin
      cbStopBits3.ItemIndex    := dm.FiniParam.ReadInteger('Balanca3','StopBits',0);
      cbHandShaking3.ItemIndex := dm.FiniParam.ReadInteger('Balanca3','HandShaking',0);
      edTimeOut3.Text          := dm.FiniParam.ReadString( 'Balanca3','TimeOut','2000');
+
+     edComandaIni1.Text       := dm.FiniParam.ReadString( 'ComandaBalancaAuto','ComandaInicial','500');
+     edComandaFin1.Text       := dm.FiniParam.ReadString( 'ComandaBalancaAuto','ComandaFinal','599');
 end;
 procedure TFSelecionaProd.InputBoxSetPasswordChar(var Msg: TMessage);
 var
@@ -199,9 +220,10 @@ end;
 procedure TFSelecionaProd.CriaBotoesProdutos(sTipo : String);
 var
      botao, botao2: TButton ;
-     c, l: Integer; //coluna e linha
+     c, l, qtdProd: Integer; //coluna e linha
      x: Integer;
      iLeft, iTop: Integer; //Define a posição e distancia entre os botoes
+     sql : string;
 begin
      limitGrup := 21;
 
@@ -210,30 +232,58 @@ begin
           pnlProdutos.Components[pnlProdutos.ComponentCount -1].Destroy;
 
      sqlcon.Close;
-     sqlcon.SQL.Text := 'select '+
-                        ' first ' + IntToStr(limitGrup) +
-                        ' skip ' + IntToStr(skip) +
-                        ' tbprod.codigo, tbprod.descricao, '+
-                        ' count(tbprod.codigo) as qtd, ' +
-                        ' tbprod.PVendaA ' +
+     sqlcon.SQL.Text := 'select count(tbprod.codigo) as qtd ' +
                         ' from tbprod ' +
-                        ' left join tbunmed on tbunmed.codigo = tbprod.unmed ' +
-                        ' inner join tbgrupo on tbgrupo.codigo = tbprod.grupo ' +
-                        ' and tbprod.disponivel = ' +  QuotedStr('S') +
-                        ' and tbprod.pvendaa > 0 ' +
-                        sTipo;
+                        ' left join tbunmed on tbunmed.codigo = tbprod.unmed '+
+                        ' where tbunmed.descricao = ' + QuotedStr('KG');
+     sqlcon.Open;
 
-     sqlcon.SQL.Text := sqlcon.SQL.Text + ' group by tbprod.codigo, tbprod.descricao, '+
+     qtdProd := sqlcon.FieldByName('qtd').AsInteger;
+
+     sqlcon.Close;
+     sql   := 'select '+
+               ' first ' + IntToStr(limitGrup) +
+               ' skip ' + IntToStr(skip) +
+               ' tbprod.codigo, tbprod.descricao, '+
+               ' count(tbprod.codigo) as qtd, ' +
+               ' tbprod.PVendaA ' +
+               ' from tbprod ' +
+               ' left join tbunmed on tbunmed.codigo = tbprod.unmed ' +
+               ' inner join tbgrupo on tbgrupo.codigo = tbprod.grupo ' +
+               ' and tbprod.disponivel = ' +  QuotedStr('S') +
+               ' and tbprod.pvendaa > 0 ' +
+               sTipo;
+
+     if Parametro('IGNORAR_RESTRICAO') <> 'S' then
+        sql := sql +
+                    ' and tbprod.codigo not in ('+
+                    '    select tbprod_restri.codprod from tbprod_restri'+
+                    '    where tbprod_restri.dia = (extract(weekday from current_date)+1) and'+
+                    '    current_time between tbprod_restri.hora_ini and tbprod_restri.hora_fin)'+
+                    ' and tbprod.subgrupo not in ('+
+                    '    select tbsubgru_restri.codsubgru from tbsubgru_restri'+
+                    '    where tbsubgru_restri.dia = (extract(weekday from current_date)+1) and'+
+                    '    current_time between tbsubgru_restri.hora_ini and tbsubgru_restri.hora_fin)';
+
+     sql := sql +   ' group by tbprod.codigo, tbprod.descricao, '+
                                             'tbprod.PVendaA';
 
-     sqlcon.SQL.Text := sqlcon.SQL.Text + ' order by tbprod.descricao';
+     sql := sql +   ' order by tbprod.descricao asc';
+
+     sqlcon.SQL.Text := sql;
 
      sqlcon.Open;
 
-     ultPagGrup := sqlcon.RecordCount div limitGrup;
+     if sqlcon.IsEmpty then
+     begin
+        Application.MessageBox('Nao existem produtos tipo KG cadastrados', 'Atençao', mb_ok + mb_iconexclamation);
+        exit;
+     end;
 
-     btAnterior.Enabled := skip > 0;
-     btProx.Enabled     := skip < ultPagGrup;
+     ultPagGrup := qtdProd div limitGrup;
+
+     btAnterior.Enabled := pagProd > 0;
+     btProx.Enabled     := pagProd < ultPagGrup;
 
      nColunasProd := pnlProdutos.Width div bt_Prod_DivHorz;
 
@@ -256,9 +306,9 @@ begin
           botao.Caption := sqlcon.FieldByName('descricao').AsString;
 
           //Informa o valor do produto
-          if bt_Prod_InfoValor then
-               botao.Caption := botao.Caption + #13 +
-                    FormatCurr('#,###,##0.00',sqlcon.FieldByName('pvendaa').AsFloat);
+          //if bt_Prod_InfoValor then
+          botao.Caption := botao.Caption + #13 +
+               FormatCurr('R$ #,###,##0.00',sqlcon.FieldByName('pvendaa').AsFloat);
 
           botao.WordWrap := True; //Quebra de linha
 
@@ -304,6 +354,18 @@ begin
 
           Self.Refresh;
      end;
+end;
+
+procedure TfSelecionaProd.edComandaIni1KeyPress(Sender: TObject; var Key: Char);
+begin
+  if not (Key in ['0'..'9',#13,#8]) then
+     Key := #0 ;
+end;
+
+procedure TfSelecionaProd.edComandaFin1KeyPress(Sender: TObject; var Key: Char);
+begin
+  if not (Key in ['0'..'9',#13,#8]) then
+     Key := #0 ;
 end;
 
 procedure TfSelecionaProd.edPrecoKGKeyPress(Sender: TObject; var Key: Char);
@@ -390,6 +452,14 @@ end;
 
 procedure TfSelecionaProd.brSalvarClick(Sender: TObject);
 begin
+  {   if (strToInt(edComandaIni1.Text) > strToInt(edComandaFin1.Text))
+     or (strToInt(edComandaIni2.Text) > strToInt(edComandaFin2.Text))
+     or (strToInt(edComandaIni3.Text) > strToInt(edComandaFin3.Text))then
+     begin
+       Application.MessageBox('O numero de comanda inicial nao pode ser maior que o numero final', 'Atençao', mb_ok + mb_iconerror);
+       exit;
+     end;
+   }
      dm.FiniParam.WriteBool   ('Balanca', 'EnviaVrUnit',    cbEVrUnit.Checked);
      dm.FiniParam.WriteInteger('Balanca', 'ComandoInicial', StrToInt(edComandoInicial.Text));
      dm.FiniParam.WriteInteger('Balanca', 'ComandoFinal',   StrToInt(edComandoFinal.Text));
@@ -423,12 +493,17 @@ begin
      dm.FiniParam.WriteInteger('Balanca3', 'HandShaking', cbHandShaking3.ItemIndex);
      dm.FiniParam.WriteString( 'Balanca3', 'TimeOut',     edTimeOut3.Text);
 
+
+     dm.FiniParam.WriteString( 'ComandaBalancaAuto', 'ComandaInicial',     edComandaIni1.Text);
+     dm.FiniParam.WriteString( 'ComandaBalancaAuto', 'ComandaFinal',     edComandaFin1.Text);
+
      pnlConfig.Width := 39;
      pnlConfig.Color := $0010B0FE;
 end;
 
 procedure TfSelecionaProd.btAnteriorClick(Sender: TObject);
 begin
+    pagProd := pagProd - 1;
     skip := skip - 21;
     CriaBotoesProdutos('and tbunmed.descricao = '+ QuotedStr('KG'));
 end;
@@ -473,6 +548,7 @@ end;
 
 procedure TfSelecionaProd.btProxClick(Sender: TObject);
 begin
+      pagProd := pagProd + 1;
       skip := skip + 21;
       CriaBotoesProdutos('and tbunmed.descricao = '+ QuotedStr('KG'));
 end;
@@ -561,6 +637,9 @@ begin
      cbStopBits3.Visible      := cbBalanca.ItemIndex = 2;
      cbHandShaking3.Visible   := cbBalanca.ItemIndex = 2;
      edTimeOut3.Visible       := cbBalanca.ItemIndex = 2;
+
+     edComandaIni1.Visible    := cbBalanca.ItemIndex = 0;
+     edComandaFin1.Visible    := cbBalanca.ItemIndex = 0;
 end;
 
 procedure TfSelecionaProd.cbQtdBalancaChange(Sender: TObject);
@@ -579,6 +658,8 @@ var sql : string;
 begin
      if pnlProdutos.Tag = 1 then
           Exit;
+
+     ConsultaCaixa;
 
      ultBtnProd := TButton(Sender).Name;
 
@@ -639,6 +720,8 @@ begin
     CarregaBal;
 
     CriaBotoesProdutos('and tbunmed.descricao = '+ QuotedStr('KG'));
+
+    ConsultaCaixa;
 end;
 
 procedure TfSelecionaProd.rgUsaBalancaClick(Sender: TObject);
@@ -687,6 +770,9 @@ begin
 
      btTestePeso.Enabled    := rgUsaBalanca.ItemIndex = 0;
      edTestePeso.Enabled    := rgUsaBalanca.ItemIndex = 0;
+
+     edComandaIni1.Enabled  := rgUsaBalanca.ItemIndex = 0;
+     edComandaFin1.Enabled  := rgUsaBalanca.ItemIndex = 0;
 
      cbEVrUnit.Enabled               := rgUsaBalanca.ItemIndex = 0;
 

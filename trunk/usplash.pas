@@ -11,7 +11,6 @@ uses
 type
   TFSplash = class(TForm)
     sqlcon2: TSQLQuery;
-    Sqlterminal: TSQLQuery;
     pnlemail: TPanel;
     Image1: TImage;
     Label1: TLabel;

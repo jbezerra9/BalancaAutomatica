@@ -14,6 +14,8 @@ object fPrinc: TfPrinc
   OldCreateOrder = False
   Position = poDesigned
   WindowState = wsMaximized
+  OnActivate = FormActivate
+  OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
@@ -5958,13 +5960,6 @@ object fPrinc: TfPrinc
     DataSet = cdsComandaItem
     Left = 464
     Top = 192
-  end
-  object sqlcon2: TSQLQuery
-    MaxBlobSize = -1
-    Params = <>
-    SQLConnection = dm.conexao
-    Left = 352
-    Top = 32
   end
   object Timer1: TTimer
     Enabled = False

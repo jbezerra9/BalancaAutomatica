@@ -23,7 +23,6 @@ type
     vrProd: TLabel;
     vrPeso: TLabel;
     dsComandaItem: TDataSource;
-    sqlcon2: TSQLQuery;
     Timer1: TTimer;
     btSair: TSpeedButton;
     sdsComandaItem: TSQLDataSet;
@@ -71,17 +70,24 @@ type
     procedure FormResize(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure btSairClick(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
     vrvenda: Double;
-    procedure MensagemMemo(sHead, sTitulo, sCorpo : string; iCor : integer; sPeso : double; pausa : Cardinal);
-    procedure ConfiguraBal;
-    function lerBalanca(Peso: Double): Boolean;
-  public
-    { Public declarations }
     BalancaPronta : Boolean;
+    comandaInicial, comandaFinal : String;
     PesoAnterior: Double;
     precoKG     : Double;
+    vrtot       : Double;
+    procedure MensagemMemo(sHead, sTitulo, sCorpo : string; iCor : integer; sPeso : double; pausa : Cardinal);
+    procedure ConfiguraBal;
+    procedure ConsultaCaixa;
+    procedure zeraGerador;
+    function lerBalanca(Peso: Double): Boolean;
+    function geraIdComandaBal : integer;
+  public
+    { Public declarations }
   end;
 
 var
@@ -98,6 +104,37 @@ implementation
 
 uses uFuncoes, uModulo, Utransacao, uMensagem, upesqcad, urelPagamento,
   uselecionaprod;
+
+procedure TfPrinc.zeraGerador;
+begin
+      sqlcon.Close;
+      sqlcon.SQL.Text := 'SELECT GEN_ID(gen_comandabalanca_auto, 0) FROM RDB$DATABASE';
+      sqlcon.Open;
+
+      if (sqlcon.Fieldbyname('gen_id').AsInteger = strToInt(comandaFinal))
+      or (sqlcon.Fieldbyname('gen_id').AsInteger < strToInt(comandaInicial)) then
+      begin
+          sqlcon.Close;
+          sqlcon.SQL.Text := 'set generator gen_comandabalanca_auto to ' + comandaInicial;
+          sqlcon.ExecSQL;
+      end;
+end;
+
+function TfPrinc.geraIdComandaBal : integer;
+var sqlc : TSQLQuery;
+    comanda : integer;
+begin
+    zeraGerador;
+
+    sqlc               := TSQLQuery.Create(dm.conexao);
+    sqlc.SQLConnection := dm.conexao;
+
+    sqlc.Close;
+    sqlc.SQL.Text := 'SELECT GEN_ID(gen_comandabalanca_auto, 1) FROM RDB$DATABASE';
+    sqlc.Open;
+
+    Result := sqlc.FieldByName('Gen_id').AsInteger;
+end;
 
 procedure TfPrinc.ConfiguraBal;
 var  timeout : integer;
@@ -159,37 +196,38 @@ begin
 end;
 
 function TfPrinc.lerBalanca(Peso: Double): Boolean;
-var codProdSalva1, codProdSalva2 : String;
+var codProdSalva1, codProdSalva2, descricao : String;
+    vrunit : double;
 begin
-    if (Arredondar(Peso,3) = Arredondar(PesoAnterior,3))
-    or (Arredondar(Peso,3) = Arredondar(PesoAnterior + 0.002,3))
-    or (Arredondar(Peso,3) = Arredondar(PesoAnterior - 0.002,3))
-    or (Arredondar(Peso,3) < Arredondar(strToFloat('0,020'),3)) then
-      Exit;
+  if (Arredondar(Peso,3) = Arredondar(PesoAnterior,3))
+  or (Arredondar(Peso,3) = Arredondar(PesoAnterior + 0.002,3))
+  or (Arredondar(Peso,3) = Arredondar(PesoAnterior - 0.002,3))
+  or (Arredondar(Peso,3) < Arredondar(strToFloat('0,020'),3)) then
+    Exit;
 
-    if not BalancaPronta then
-      exit
-    else
-      BalancaPronta := false;
+  if not BalancaPronta then
+    exit
+  else
+    BalancaPronta := false;
 
   PesoAnterior := Peso;
 
   MensagemMemo(' ', 'Aguarde', 'Lendo balança...', clYellow, 0, 3);
 
-  sqlcon2.Close;
-  sqlcon2.SQL.Text := 'select max(tbcomanda.comanda) as comanda from tbcomanda';
-  sqlcon2.Open;
-
   sqlcon.Close;
-  sqlcon.SQL.Text := 'select tbprod.descricao, tbprod.pvendaa, ' +
-    '(tbprod.pVendaa * ' + Trocavirgula(Peso) + ') as vrTotal,  ' +
-    'tbunmed.descricao as un ' + 'from tbprod ' +
-    'left join tbunmed on tbunmed.codigo = tbprod.unmed ' +
-    'where tbprod.codigo = ' + sCodProd;
+  sqlcon.SQL.Text := 'select tbprod.descricao as descProd, ' +
+                     'tbprod.pVendaa as vrUnit,  ' +
+                     'tbunmed.descricao as un ' + 'from tbprod ' +
+                     'left join tbunmed on tbunmed.codigo = tbprod.unmed ' +
+                     'where tbprod.codigo = ' + sCodProd;
   sqlcon.Open;
 
   if sqlcon.IsEmpty then
     Exit;
+
+  vrtot    := sqlcon.FieldByName('vrUnit').AsFloat * peso;
+  vrunit    := sqlcon.FieldByName('vrUnit').AsFloat;
+  descricao := sqlcon.FieldByName('descProd').AsString;
 
   codProdSalva1 := sCodProd;
 
@@ -205,15 +243,18 @@ begin
        else
             codProdSalva2 := '';
 
+  cdsComandaItem.EmptyDataSet;
+
   cdsComandaItem.Append;
-  cdsComandaItemCOMANDA.AsInteger          := sqlcon2.FieldByName('comanda').AsInteger + 1;
+  cdsComandaItemCOMANDA.AsInteger          := geraIdComandaBal;
   cdsComandaItemCODPROD.AsString           := codProdSalva1;
   cdsComandaItemCODPROD_2.AsString         := codProdSalva2;
-  cdsComandaItemDESCRICAO.AsString         := sqlcon.FieldByName('descricao').AsString;
+  cdsComandaItemDESCRICAO.AsString         := descricao;
   cdsComandaItemQTD.AsFloat                := Peso;
-  cdsComandaItemVR_UNIT.AsFloat            := sqlcon.FieldByName('vrTotal').AsFloat;
+  cdsComandaItemVR_UNIT.AsFloat            := vrunit;
   cdsComandaItemFUNCIONARIO.AsString       := '';
   cdsComandaItemID_INGRE.AsInteger         := 0;
+  cdsComandaItemSEQ_PESO.AsInteger         := 1;
   cdsComandaItemVIAGEM.AsString            := 'N';
   cdsComandaItemTAXAATENDIMENTO.AsString   := 'N';
 
@@ -225,9 +266,10 @@ begin
 
   try
     application.CreateForm(Tfrelpagamento, frelpagamento);
-    frelpagamento.rlNomeEmp.Lines.Add(IfThen(dm.tbempEMPRESA.AsString = '',
-      dm.tbempNOME.AsString, dm.tbempEMPRESA.AsString));
+    frelpagamento.rlNomeEmp.Lines.Add(IfThen(dm.tbempNOME.AsString = '',
+      dm.tbempEMPRESA.AsString, dm.tbempNOME.AsString));
     frelpagamento.rlComanda2.Caption := 'Comanda: ' + cdsComandaItemCOMANDA.AsString;
+    frelpagamento.vrtot := vrtot;
     frelpagamento.Imprimir;
   finally
     freeAndNil(frelpagamento);
@@ -254,6 +296,32 @@ begin
     lerBalanca(Peso);
 end;
 
+procedure TfPrinc.ConsultaCaixa;
+begin
+    sqlcon.Close;
+    sqlcon.SQL.Text := 'select * '+
+                       'from tbcaixa '+
+                       'where aberto = ''S'' ';
+    sqlcon.Open;
+
+    if sqlcon.IsEmpty then
+    begin
+        Application.MessageBox('Abra o caixa antes de utilizar a balança automática','Atenção', mb_ok + mb_iconexclamation);
+        Abort;
+    end
+end;
+
+procedure TfPrinc.FormActivate(Sender: TObject);
+begin
+    ConsultaCaixa;
+end;
+
+procedure TfPrinc.FormCreate(Sender: TObject);
+begin
+   comandaInicial  := dm.FiniParam.ReadString( 'ComandaBalancaAuto','ComandaInicial','500');
+   comandaFinal    := dm.FiniParam.ReadString( 'ComandaBalancaAuto','ComandaFinal','599');
+end;
+
 procedure TfPrinc.FormDestroy(Sender: TObject);
 begin
   // Desconecta da balança e libera o objeto
@@ -271,7 +339,6 @@ procedure TfPrinc.FormShow(Sender: TObject);
 begin
   sCodProd := dm.sCodProd;
 
-  //cdsProd.CreateDataSet;
   dm.tbemp.Open;
   cdsComandaItem.Open;
 
@@ -296,6 +363,8 @@ begin
   Application.Title := 'Balança Automatica';
 
   BalancaPronta  := true;
+
+  zeraGerador;
   ConfiguraBal;
   Timer1.Enabled := true;
 end;

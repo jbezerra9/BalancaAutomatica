@@ -22,7 +22,7 @@ object frelpagamento: Tfrelpagamento
     Margins.TopMargin = 0.000000000000000000
     Margins.RightMargin = 5.000000000000000000
     Margins.BottomMargin = 5.000000000000000000
-    DataSource = fPrinc.dsProd
+    DataSource = fPrinc.dsComandaItem
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlack
     Font.Height = -13
@@ -44,7 +44,7 @@ object frelpagamento: Tfrelpagamento
       Borders.DrawRight = False
       Borders.DrawBottom = True
       object rlNomeEmp: TRLMemo
-        Left = 80
+        Left = 49
         Top = 8
         Width = 186
         Height = 19
@@ -83,7 +83,7 @@ object frelpagamento: Tfrelpagamento
         ParentFont = False
       end
       object RLLabel3: TRLLabel
-        Left = 200
+        Left = 156
         Top = 0
         Width = 29
         Height = 16
@@ -96,7 +96,7 @@ object frelpagamento: Tfrelpagamento
         ParentFont = False
       end
       object RLLabel4: TRLLabel
-        Left = 299
+        Left = 224
         Top = 1
         Width = 38
         Height = 16
@@ -111,9 +111,9 @@ object frelpagamento: Tfrelpagamento
     end
     object RLBand5: TRLBand
       Left = 0
-      Top = 118
+      Top = 185
       Width = 340
-      Height = 113
+      Height = 163
       BandType = btSummary
       Borders.Sides = sdCustom
       Borders.DrawLeft = False
@@ -121,8 +121,8 @@ object frelpagamento: Tfrelpagamento
       Borders.DrawRight = False
       Borders.DrawBottom = False
       object RLMemo1: TRLMemo
-        Left = 125
-        Top = 67
+        Left = 100
+        Top = 48
         Width = 82
         Height = 13
         Alignment = taCenter
@@ -136,15 +136,9 @@ object frelpagamento: Tfrelpagamento
           'BBI Food')
         ParentFont = False
       end
-      object RLDraw3: TRLDraw
-        Left = 166
-        Top = 111
-        Width = 1
-        Height = 1
-      end
       object RLMemo2: TRLMemo
-        Left = 94
-        Top = 27
+        Left = 61
+        Top = 23
         Width = 156
         Height = 19
         Alignment = taCenter
@@ -158,40 +152,36 @@ object frelpagamento: Tfrelpagamento
           'Bom Apetite!')
         ParentFont = False
       end
+      object RLLabel1: TRLLabel
+        Left = 100
+        Top = 88
+        Width = 2
+        Height = 2
+        Caption = '.'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -1
+        Font.Name = 'Arial'
+        Font.Style = []
+        ParentFont = False
+      end
     end
     object RLBand1: TRLBand
       Left = 0
       Top = 93
       Width = 340
       Height = 25
+      BeforePrint = RLBand1BeforePrint
       object RLDBText2: TRLDBText
-        Left = 194
+        Left = 143
         Top = 3
         Width = 42
         Height = 16
         Alignment = taCenter
         AutoSize = False
         DataField = 'qtd'
-        DataSource = fPrinc.dsProd
+        DataSource = fPrinc.dsComandaItem
         DisplayMask = '#0.000'
-        Font.Charset = ANSI_CHARSET
-        Font.Color = clBlack
-        Font.Height = -13
-        Font.Name = 'Tahoma'
-        Font.Style = []
-        ParentFont = False
-        Text = ''
-      end
-      object RLDBText3: TRLDBText
-        Left = 268
-        Top = 3
-        Width = 69
-        Height = 16
-        Alignment = taRightJustify
-        AutoSize = False
-        DataField = 'VrTotal'
-        DataSource = fPrinc.dsProd
-        DisplayMask = 'R$ #,###,##0.00'
         Font.Charset = ANSI_CHARSET
         Font.Color = clBlack
         Font.Height = -13
@@ -203,11 +193,23 @@ object frelpagamento: Tfrelpagamento
       object RLDBMemo1: TRLDBMemo
         Left = 5
         Top = 3
-        Width = 172
+        Width = 132
         Height = 16
         Behavior = [beSiteExpander]
-        DataField = 'Descricao'
-        DataSource = fPrinc.dsProd
+        DataField = 'descricao'
+        DataSource = fPrinc.dsComandaItem
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -13
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+      end
+      object rlVrTotal: TRLLabel
+        Left = 208
+        Top = 3
+        Width = 54
+        Height = 16
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clBlack
         Font.Height = -13
@@ -241,8 +243,8 @@ object frelpagamento: Tfrelpagamento
         Text = ''
       end
       object RLSystemInfo4: TRLSystemInfo
-        Left = 293
-        Top = 23
+        Left = 218
+        Top = 22
         Width = 44
         Height = 14
         Alignment = taRightJustify
@@ -256,8 +258,8 @@ object frelpagamento: Tfrelpagamento
         Text = ''
       end
       object rlComanda2: TRLLabel
-        Left = 94
-        Top = 5
+        Left = 66
+        Top = 3
         Width = 142
         Height = 19
         Alignment = taCenter
@@ -267,6 +269,36 @@ object frelpagamento: Tfrelpagamento
         Font.Height = -16
         Font.Name = 'Tahoma'
         Font.Style = [fsBold]
+        ParentFont = False
+      end
+    end
+    object RLBand6: TRLBand
+      Left = 0
+      Top = 118
+      Width = 340
+      Height = 67
+      Borders.Sides = sdCustom
+      Borders.DrawLeft = False
+      Borders.DrawTop = True
+      Borders.DrawRight = False
+      Borders.DrawBottom = False
+      object RLDBBarcode1: TRLDBBarcode
+        Left = 37
+        Top = 15
+        Width = 198
+        Height = 37
+        Margins.LeftMargin = 1.000000000000000000
+        Margins.RightMargin = 1.000000000000000000
+        Alignment = taCenter
+        AutoSize = False
+        BarcodeType = bcCode39
+        DataField = 'COMANDA'
+        DataSource = fPrinc.dsComandaItem
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlack
+        Font.Height = -33
+        Font.Name = 'Arial'
+        Font.Style = []
         ParentFont = False
       end
     end

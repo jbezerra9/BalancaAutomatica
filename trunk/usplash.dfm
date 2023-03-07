@@ -478,13 +478,6 @@ object FSplash: TFSplash
     Params = <>
     SQLConnection = dm.conexao
     Left = 288
-    Top = 48
-  end
-  object Sqlterminal: TSQLQuery
-    MaxBlobSize = -1
-    Params = <>
-    SQLConnection = dm.conexao
-    Left = 288
-    Top = 16
+    Top = 8
   end
 end

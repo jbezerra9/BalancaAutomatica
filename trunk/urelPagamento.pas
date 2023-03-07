@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, RLReport, RLPrinters;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, RLReport, RLPrinters, RLBarcode;
 
 type
   Tfrelpagamento = class(TForm)
@@ -16,21 +16,25 @@ type
     RLLabel4: TRLLabel;
     RLBand5: TRLBand;
     RLMemo1: TRLMemo;
-    RLDraw3: TRLDraw;
     RLMemo2: TRLMemo;
     RLBand1: TRLBand;
     RLDBText2: TRLDBText;
-    RLDBText3: TRLDBText;
     RLDBMemo1: TRLDBMemo;
     rlNomeEmp: TRLMemo;
     RLBand3: TRLBand;
     RLSystemInfo3: TRLSystemInfo;
     RLSystemInfo4: TRLSystemInfo;
     rlComanda2: TRLLabel;
+    RLBand6: TRLBand;
+    RLLabel1: TRLLabel;
+    rlVrTotal: TRLLabel;
+    RLDBBarcode1: TRLDBBarcode;
+    procedure RLBand1BeforePrint(Sender: TObject; var PrintIt: Boolean);
   private
     { Private declarations }
   public
     { Public declarations }
+    vrtot : double;
     procedure Imprimir;
   end;
 
@@ -99,6 +103,12 @@ begin
 
      if (iErroAoImprimir = 1) and (bImpresso = False) then //Se deu erro na primeira vez, tenta novamente
           goto TrataErroAoImprimir;
+end;
+
+procedure Tfrelpagamento.RLBand1BeforePrint(Sender: TObject;
+  var PrintIt: Boolean);
+begin
+    rlVrTotal.Caption := FormatFloat('R$ #,##0.00', vrtot);
 end;
 
 end.
