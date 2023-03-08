@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, RLReport, RLPrinters, RLBarcode, System.StrUtils,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, RLReport, RLPrinters, RLBarcode,
   Data.FMTBcd, Data.DB, Datasnap.Provider, Data.SqlExpr, Datasnap.DBClient;
 
 type
@@ -56,7 +56,6 @@ type
     dspAdicional: TDataSetProvider;
     cdsAdicionalCODIGO: TStringField;
     cdsAdicionalDESCRICAO: TStringField;
-    RLMemo3: TRLMemo;
     procedure RLBand1BeforePrint(Sender: TObject; var PrintIt: Boolean);
     procedure rbAdicionaisBeforePrint(Sender: TObject; var PrintIt: Boolean);
   private
@@ -137,85 +136,51 @@ end;
 procedure Tfrelpagamento.rbAdicionaisBeforePrint(Sender: TObject;
   var PrintIt: Boolean);
 var
-  i, j        : Integer;
-  k           : integer;
-  rlAdicional : TRLLabel;
+  i, j: Integer;
+  lbAdicional: TRLLabel;
   pnlAdicional: TRLPanel;
-  sEspacos    : string;
-
+  sEspacos   : string;
 begin
-  if Parametro('UTILIZA_ADICIONAL_BALANCAAUTO') = 'S' then
+  cdsAdicional.Close;
+  cdsAdicional.Open;
+
+  // Loop para percorrer os registros do TSQLQuery
+  for i := 0 to cdsAdicional.RecordCount - 1 do
   begin
-      rlAdicional := TRLLabel.Create(nil);
+    sEspacos := '';
 
-      cdsAdicional.Close;
-      cdsAdicional.Open;
+    // Obtém uma referência à próxima Label com nome sequencial
+    lbAdicional := TRLLabel(FindComponent('lbAdicional' + IntToStr(i + 1)));
 
-      if (cdsAdicional.IsEmpty) or (cdsAdicional.RecordCount > 10) then
-      begin
-          rbAdicionais.Height := rbAdicionais.Height - 31;
-          exit;
-      end;
+    // Se a Label foi encontrada, configura a propriedade "Visible" para True
+    if Assigned(lbAdicional) then
+      lbAdicional.Caption := LeftStr(cdsAdicionalDESCRICAO.AsString, 14);
 
-      k := 0;
-      // Loop para percorrer os registros do TSQLQuery
-      for i := 0 to cdsAdicional.RecordCount - 1 do
-      begin
-        sEspacos := '';
+    for j := Length(lbAdicional.Caption) to 20 do
+      sEspacos := sEspacos + '_';
 
-        // Obtém uma referência à próxima Label com nome sequencial
-        rlAdicional := TRLLabel(FindComponent('rlAdicional' + IntToStr(i + 1)));
+    sEspacos := sEspacos + '|';
 
-        // Se a Label foi encontrada, configura a propriedade "Visible" para True
-        if Assigned(rlAdicional) then
-        begin
-          rlAdicional.Caption := LeftStr(cdsAdicionalDESCRICAO.AsString, 14);
-          k := k + 1;
-        end
-        else
-          exit;
+    // Move para o próximo registro
+    cdsAdicional.Next;
+  end;
 
-        //verifica se a quantidade de labels visiveis nao ´´e par,
-        //se nao for, adiciona o espaço necessario para mostrar o painel
-        if not (k mod 2 = 0) then
-           rbAdicionais.Height := rbAdicionais.Height + 31;
+  i := 0;
 
-         //comentado bloco que pintava 'nomeDoProduto______|
-        {for j := Length(rlAdicional.Caption) to 18 do
-          sEspacos := sEspacos + '_';
+  cdsAdicional.First;
+  // Loop para percorrer os registros do TSQLQuery
+  for i := 0 to cdsAdicional.RecordCount - 1 do
+  begin
+    // Obtém uma referência do proximo painel com nome sequencial
+    pnlAdicional := TRLLabel(FindComponent('pnlAdicional' + IntToStr(i + 1)));
 
-        sEspacos := sEspacos + '|';}
+    // Se a painel foi encontrada, configura a propriedade "Visible" para True
+    if Assigned(pnlAdicional) then
+      pnlAdicional.Visible := True;
 
-        rlAdicional.Caption := rlAdicional.Caption + sEspacos;
-
-        // Move para o próximo registro
-        cdsAdicional.Next;
-      end;
-
-      i := 0;
-
-      pnlAdicional := TRLPanel.Create(nil);
-
-      cdsAdicional.First;
-      // Loop para percorrer os registros do TSQLQuery
-      for i := 0 to cdsAdicional.RecordCount - 1 do
-      begin
-        // Obtém uma referência do proximo painel com nome sequencial
-        pnlAdicional := TRLPanel(FindComponent('pnlAdicional' + IntToStr(i + 1)));
-
-        // Se o painel foi encontrado, configura a propriedade "Visible" para True
-        if Assigned(pnlAdicional) then
-          pnlAdicional.Visible := True;
-
-        // Move para o próximo registro
-        cdsAdicional.Next;
-      end;
-  end
-  else
-    begin
-      rbAdicionais.Height := rbAdicionais.Height - 31;
-      exit;
-    end;
+    // Move para o próximo registro
+    cdsAdicional.Next;
+  end;
 end;
 
 procedure Tfrelpagamento.RLBand1BeforePrint(Sender: TObject;

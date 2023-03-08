@@ -4,51 +4,65 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, RLReport, RLPrinters;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, RLReport, RLPrinters, RLBarcode,
+  Data.FMTBcd, Data.DB, Datasnap.Provider, Data.SqlExpr, Datasnap.DBClient;
 
 type
   Tfrelpagamento = class(TForm)
     RLReport1: TRLReport;
     RLBand2: TRLBand;
-    qrlNomeEmp: TRLLabel;
-    lblpedido: TRLLabel;
-    lbRomaneio: TRLLabel;
-    LblFilial: TRLLabel;
-    RLBand3: TRLBand;
-    RLSystemInfo1: TRLSystemInfo;
-    RLSystemInfo2: TRLSystemInfo;
-    RLDBResult2: TRLDBResult;
-    RLDBResult1: TRLDBResult;
-    RLLabel5: TRLLabel;
-    RLLabel6: TRLLabel;
-    RLLabel10: TRLLabel;
-    lbusuario: TRLLabel;
-    RLLabel8: TRLLabel;
-    lbtipo: TRLLabel;
-    lbtipo2: TRLLabel;
-    RLGroup1: TRLGroup;
-    RLBand1: TRLBand;
-    RLDBText2: TRLDBText;
-    RLDBText3: TRLDBText;
-    RLDBMemo1: TRLDBMemo;
     RLBand4: TRLBand;
     RLLabel2: TRLLabel;
     RLLabel3: TRLLabel;
     RLLabel4: TRLLabel;
     RLBand5: TRLBand;
-    RLDraw1: TRLDraw;
-    RLDraw2: TRLDraw;
-    RLLabel9: TRLLabel;
-    RLLabel7: TRLLabel;
     RLMemo1: TRLMemo;
-    RLDraw3: TRLDraw;
+    RLMemo2: TRLMemo;
+    RLBand1: TRLBand;
+    RLDBText2: TRLDBText;
+    RLDBMemo1: TRLDBMemo;
+    rlNomeEmp: TRLMemo;
+    RLBand3: TRLBand;
+    RLSystemInfo3: TRLSystemInfo;
+    RLSystemInfo4: TRLSystemInfo;
+    rlComanda2: TRLLabel;
     RLBand6: TRLBand;
-    memoMotivo: TRLMemo;
-    lbMotivo: TRLLabel;
+    RLLabel1: TRLLabel;
+    rlVrTotal: TRLLabel;
+    RLDBBarcode1: TRLDBBarcode;
+    rbAdicionais: TRLBand;
+    pnlAdicional1: TRLPanel;
+    rlAdicional1: TRLLabel;
+    cdsAdicional: TClientDataSet;
+    pnlAdicional3: TRLPanel;
+    rlAdicional3: TRLLabel;
+    pnlAdicional7: TRLPanel;
+    rlAdicional7: TRLLabel;
+    pnlAdicional5: TRLPanel;
+    rlAdicional5: TRLLabel;
+    pnlAdicional9: TRLPanel;
+    rlAdicional9: TRLLabel;
+    pnlAdicional2: TRLPanel;
+    rlAdicional2: TRLLabel;
+    pnlAdicional4: TRLPanel;
+    rlAdicional4: TRLLabel;
+    pnlAdicional8: TRLPanel;
+    rlAdicional8: TRLLabel;
+    pnlAdicional6: TRLPanel;
+    rlAdicional6: TRLLabel;
+    pnlAdicional10: TRLPanel;
+    rlAdicional10: TRLLabel;
+    sdsAdicional: TSQLDataSet;
+    dspAdicional: TDataSetProvider;
+    cdsAdicionalCODIGO: TStringField;
+    cdsAdicionalDESCRICAO: TStringField;
+    procedure RLBand1BeforePrint(Sender: TObject; var PrintIt: Boolean);
+    procedure rbAdicionaisBeforePrint(Sender: TObject; var PrintIt: Boolean);
   private
     { Private declarations }
   public
     { Public declarations }
+    vrtot : double;
     procedure Imprimir;
   end;
 
@@ -117,6 +131,33 @@ begin
 
      if (iErroAoImprimir = 1) and (bImpresso = False) then //Se deu erro na primeira vez, tenta novamente
           goto TrataErroAoImprimir;
+end;
+
+procedure Tfrelpagamento.rbAdicionaisBeforePrint(Sender: TObject;
+  var PrintIt: Boolean);
+var
+  i: Integer;
+  lbAdicional: TRLLabel;
+begin
+  // Loop para percorrer os registros do TSQLQuery
+  for i := 0 to cdsAdicional.RecordCount - 1 do
+  begin
+    // Obtém uma referência à próxima Label com nome sequencial
+    lbAdicional := TRLLabel(FindComponent('lbAdicional' + IntToStr(i + 1)));
+
+    // Se a Label foi encontrada, configura a propriedade "Visible" para True
+    if Assigned(lbAdicional) then
+      lbAdicional.Visible := True;
+
+    // Move para o próximo registro
+    cdsAdicional.Next;
+  end;
+end;
+
+procedure Tfrelpagamento.RLBand1BeforePrint(Sender: TObject;
+  var PrintIt: Boolean);
+begin
+    rlVrTotal.Caption := FormatFloat('R$ #,##0.00', vrtot);
 end;
 
 end.

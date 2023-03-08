@@ -23,7 +23,6 @@ type
     vrProd: TLabel;
     vrPeso: TLabel;
     dsComandaItem: TDataSource;
-    sqlcon2: TSQLQuery;
     Timer1: TTimer;
     btSair: TSpeedButton;
     sdsComandaItem: TSQLDataSet;
@@ -76,8 +75,8 @@ type
   private
     { Private declarations }
     vrvenda: Double;
-    BalancaPronta, bZeraGerador : Boolean;
-    comandaInicial, comandaFinal : integer;
+    BalancaPronta : Boolean;
+    comandaInicial, comandaFinal : String;
     PesoAnterior: Double;
     precoKG     : Double;
     vrtot       : Double;
@@ -108,35 +107,22 @@ uses uFuncoes, uModulo, Utransacao, uMensagem, upesqcad, urelPagamento,
 
 procedure TfPrinc.zeraGerador;
 begin
-      if bZeraGerador = true then
-        exit;
-
       sqlcon.Close;
       sqlcon.SQL.Text := 'SELECT GEN_ID(gen_comandabalanca_auto, 0) FROM RDB$DATABASE';
       sqlcon.Open;
 
-      if sqlcon.Fieldbyname('gen_id').AsInteger = 0 then
-        exit;
-
-      sqlcon.Close;
-      sqlcon.SQL.Text := 'select * '+
-                         'from tbcaixa '+
-                         'where data = ' +
-                         QuotedStr(FormatDateTime('mm/dd/yyyy',Date));
-      sqlcon.Open;
-
-      if (sqlcon.RecordCount >= 2) then
+      if (sqlcon.Fieldbyname('gen_id').AsInteger = strToInt(comandaFinal))
+      or (sqlcon.Fieldbyname('gen_id').AsInteger < strToInt(comandaInicial)) then
       begin
           sqlcon.Close;
-          sqlcon.SQL.Text := 'set generator gen_comandabalanca_auto to 0';
+          sqlcon.SQL.Text := 'set generator gen_comandabalanca_auto to ' + comandaInicial;
           sqlcon.ExecSQL;
-
-          bZeraGerador := true;
       end;
 end;
 
 function TfPrinc.geraIdComandaBal : integer;
 var sqlc : TSQLQuery;
+    comanda : integer;
 begin
     zeraGerador;
 
@@ -144,9 +130,7 @@ begin
     sqlc.SQLConnection := dm.conexao;
 
     sqlc.Close;
-    sqlc.SQL.Text := 'SELECT NEXT VALUE ' +
-                     'FOR gen_comandabalanca_auto ' +
-                     'FROM RDB$DATABASE';
+    sqlc.SQL.Text := 'SELECT GEN_ID(gen_comandabalanca_auto, 1) FROM RDB$DATABASE';
     sqlc.Open;
 
     Result := sqlc.FieldByName('Gen_id').AsInteger;
@@ -212,7 +196,8 @@ begin
 end;
 
 function TfPrinc.lerBalanca(Peso: Double): Boolean;
-var codProdSalva1, codProdSalva2 : String;
+var codProdSalva1, codProdSalva2, descricao : String;
+    vrunit : double;
 begin
   if (Arredondar(Peso,3) = Arredondar(PesoAnterior,3))
   or (Arredondar(Peso,3) = Arredondar(PesoAnterior + 0.002,3))
@@ -229,20 +214,8 @@ begin
 
   MensagemMemo(' ', 'Aguarde', 'Lendo balança...', clYellow, 0, 3);
 
-  sqlcon2.Close;
-  sqlcon2.SQL.Text := 'select max(tbcomanda.comanda) as comanda ' +
-                      ' from tbcomanda ' +
-                      ' where comanda '+
-                      ' between'+
-                      ' (select cast(valor as integer) from tbparametro'+
-                      ' where parametro = ''COMANDA_INICIAL'')'+
-                      ' and'+
-                      ' (select cast(valor as integer) from tbparametro'+
-                      ' where parametro = ''COMANDA_FINAL'')';
-  sqlcon2.Open;
-
   sqlcon.Close;
-  sqlcon.SQL.Text := 'select tbprod.descricao, tbprod.pvendaa, ' +
+  sqlcon.SQL.Text := 'select tbprod.descricao as descProd, ' +
                      'tbprod.pVendaa as vrUnit,  ' +
                      'tbunmed.descricao as un ' + 'from tbprod ' +
                      'left join tbunmed on tbunmed.codigo = tbprod.unmed ' +
@@ -252,7 +225,9 @@ begin
   if sqlcon.IsEmpty then
     Exit;
 
-  vrtot := sqlcon.FieldByName('vrUnit').AsFloat * Peso;
+  vrtot    := sqlcon.FieldByName('vrUnit').AsFloat * peso;
+  vrunit    := sqlcon.FieldByName('vrUnit').AsFloat;
+  descricao := sqlcon.FieldByName('descProd').AsString;
 
   codProdSalva1 := sCodProd;
 
@@ -271,12 +246,12 @@ begin
   cdsComandaItem.EmptyDataSet;
 
   cdsComandaItem.Append;
-  cdsComandaItemCOMANDA.AsInteger          := geraIdComandaBal + 600;
+  cdsComandaItemCOMANDA.AsInteger          := geraIdComandaBal;
   cdsComandaItemCODPROD.AsString           := codProdSalva1;
   cdsComandaItemCODPROD_2.AsString         := codProdSalva2;
-  cdsComandaItemDESCRICAO.AsString         := sqlcon.FieldByName('descricao').AsString;
+  cdsComandaItemDESCRICAO.AsString         := descricao;
   cdsComandaItemQTD.AsFloat                := Peso;
-  cdsComandaItemVR_UNIT.AsFloat            := sqlcon.FieldByName('vrUnit').AsFloat;
+  cdsComandaItemVR_UNIT.AsFloat            := vrunit;
   cdsComandaItemFUNCIONARIO.AsString       := '';
   cdsComandaItemID_INGRE.AsInteger         := 0;
   cdsComandaItemSEQ_PESO.AsInteger         := 1;
@@ -326,8 +301,7 @@ begin
     sqlcon.Close;
     sqlcon.SQL.Text := 'select * '+
                        'from tbcaixa '+
-                       'where aberto = ''S'' '+
-                       'and data = ' + QuotedStr(FormatDateTime('mm/dd/yyyy',Date));
+                       'where aberto = ''S'' ';
     sqlcon.Open;
 
     if sqlcon.IsEmpty then
@@ -344,8 +318,8 @@ end;
 
 procedure TfPrinc.FormCreate(Sender: TObject);
 begin
-   comandaInicial  := dm.FiniParam.ReadInteger( 'ComandaBalancaAuto','ComandaInicial','500');
-   comandaFinal    := dm.FiniParam.ReadInteger( 'ComandaBalancaAuto','ComandaFinal','599');
+   comandaInicial  := dm.FiniParam.ReadString( 'ComandaBalancaAuto','ComandaInicial','500');
+   comandaFinal    := dm.FiniParam.ReadString( 'ComandaBalancaAuto','ComandaFinal','599');
 end;
 
 procedure TfPrinc.FormDestroy(Sender: TObject);
@@ -389,7 +363,6 @@ begin
   Application.Title := 'Balança Automatica';
 
   BalancaPronta  := true;
-  bZeraGerador   := false;
 
   zeraGerador;
   ConfiguraBal;

@@ -56,7 +56,6 @@ type
     dspAdicional: TDataSetProvider;
     cdsAdicionalCODIGO: TStringField;
     cdsAdicionalDESCRICAO: TStringField;
-    RLMemo3: TRLMemo;
     procedure RLBand1BeforePrint(Sender: TObject; var PrintIt: Boolean);
     procedure rbAdicionaisBeforePrint(Sender: TObject; var PrintIt: Boolean);
   private
@@ -138,7 +137,6 @@ procedure Tfrelpagamento.rbAdicionaisBeforePrint(Sender: TObject;
   var PrintIt: Boolean);
 var
   i, j        : Integer;
-  k           : integer;
   rlAdicional : TRLLabel;
   pnlAdicional: TRLPanel;
   sEspacos    : string;
@@ -151,13 +149,9 @@ begin
       cdsAdicional.Close;
       cdsAdicional.Open;
 
-      if (cdsAdicional.IsEmpty) or (cdsAdicional.RecordCount > 10) then
-      begin
-          rbAdicionais.Height := rbAdicionais.Height - 31;
-          exit;
-      end;
+      if cdsAdicional.IsEmpty then
+        exit;
 
-      k := 0;
       // Loop para percorrer os registros do TSQLQuery
       for i := 0 to cdsAdicional.RecordCount - 1 do
       begin
@@ -168,23 +162,12 @@ begin
 
         // Se a Label foi encontrada, configura a propriedade "Visible" para True
         if Assigned(rlAdicional) then
-        begin
           rlAdicional.Caption := LeftStr(cdsAdicionalDESCRICAO.AsString, 14);
-          k := k + 1;
-        end
-        else
-          exit;
 
-        //verifica se a quantidade de labels visiveis nao ´´e par,
-        //se nao for, adiciona o espaço necessario para mostrar o painel
-        if not (k mod 2 = 0) then
-           rbAdicionais.Height := rbAdicionais.Height + 31;
-
-         //comentado bloco que pintava 'nomeDoProduto______|
-        {for j := Length(rlAdicional.Caption) to 18 do
+        for j := Length(rlAdicional.Caption) to 17 do
           sEspacos := sEspacos + '_';
 
-        sEspacos := sEspacos + '|';}
+        sEspacos := sEspacos + '|';
 
         rlAdicional.Caption := rlAdicional.Caption + sEspacos;
 
@@ -210,12 +193,7 @@ begin
         // Move para o próximo registro
         cdsAdicional.Next;
       end;
-  end
-  else
-    begin
-      rbAdicionais.Height := rbAdicionais.Height - 31;
-      exit;
-    end;
+  end;
 end;
 
 procedure Tfrelpagamento.RLBand1BeforePrint(Sender: TObject;

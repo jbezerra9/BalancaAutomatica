@@ -4,7 +4,8 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, RLReport, RLPrinters, RLBarcode;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, RLReport, RLPrinters, RLBarcode, System.StrUtils,
+  Data.FMTBcd, Data.DB, Datasnap.Provider, Data.SqlExpr, Datasnap.DBClient;
 
 type
   Tfrelpagamento = class(TForm)
@@ -26,10 +27,37 @@ type
     RLSystemInfo4: TRLSystemInfo;
     rlComanda2: TRLLabel;
     RLBand6: TRLBand;
-    RLDBBarcode1: TRLDBBarcode;
     RLLabel1: TRLLabel;
     rlVrTotal: TRLLabel;
+    RLDBBarcode1: TRLDBBarcode;
+    rbAdicionais: TRLBand;
+    pnlAdicional1: TRLPanel;
+    rlAdicional1: TRLLabel;
+    cdsAdicional: TClientDataSet;
+    pnlAdicional3: TRLPanel;
+    rlAdicional3: TRLLabel;
+    pnlAdicional7: TRLPanel;
+    rlAdicional7: TRLLabel;
+    pnlAdicional5: TRLPanel;
+    rlAdicional5: TRLLabel;
+    pnlAdicional9: TRLPanel;
+    rlAdicional9: TRLLabel;
+    pnlAdicional2: TRLPanel;
+    rlAdicional2: TRLLabel;
+    pnlAdicional4: TRLPanel;
+    rlAdicional4: TRLLabel;
+    pnlAdicional8: TRLPanel;
+    rlAdicional8: TRLLabel;
+    pnlAdicional6: TRLPanel;
+    rlAdicional6: TRLLabel;
+    pnlAdicional10: TRLPanel;
+    rlAdicional10: TRLLabel;
+    sdsAdicional: TSQLDataSet;
+    dspAdicional: TDataSetProvider;
+    cdsAdicionalCODIGO: TStringField;
+    cdsAdicionalDESCRICAO: TStringField;
     procedure RLBand1BeforePrint(Sender: TObject; var PrintIt: Boolean);
+    procedure rbAdicionaisBeforePrint(Sender: TObject; var PrintIt: Boolean);
   private
     { Private declarations }
   public
@@ -103,6 +131,59 @@ begin
 
      if (iErroAoImprimir = 1) and (bImpresso = False) then //Se deu erro na primeira vez, tenta novamente
           goto TrataErroAoImprimir;
+end;
+
+procedure Tfrelpagamento.rbAdicionaisBeforePrint(Sender: TObject;
+  var PrintIt: Boolean);
+var
+  i, j        : Integer;
+  lbAdicional : TRLLabel;
+  pnlAdicional: TRLPanel;
+  sEspacos    : string;
+
+begin
+  cdsAdicional.Close;
+  cdsAdicional.Open;
+
+  // Loop para percorrer os registros do TSQLQuery
+  for i := 0 to cdsAdicional.RecordCount - 1 do
+  begin
+    sEspacos := '';
+
+    // Obtém uma referência à próxima Label com nome sequencial
+    lbAdicional := TRLLabel(FindComponent('lbAdicional' + IntToStr(i + 1)));
+
+    // Se a Label foi encontrada, configura a propriedade "Visible" para True
+    if Assigned(lbAdicional) then
+      lbAdicional.Caption := LeftStr(cdsAdicionalDESCRICAO.AsString, 14);
+
+    for j := Length(lbAdicional.Caption) to 20 do
+      sEspacos := sEspacos + '_';
+
+    sEspacos := sEspacos + '|';
+
+    lbAdicional.Caption := lbAdicional.Caption + sEspacos;
+
+    // Move para o próximo registro
+    cdsAdicional.Next;
+  end;
+
+  i := 0;
+
+  cdsAdicional.First;
+  // Loop para percorrer os registros do TSQLQuery
+  for i := 0 to cdsAdicional.RecordCount - 1 do
+  begin
+    // Obtém uma referência do proximo painel com nome sequencial
+    pnlAdicional := TRLPanel(FindComponent('pnlAdicional' + IntToStr(i + 1)));
+
+    // Se a painel foi encontrada, configura a propriedade "Visible" para True
+    if Assigned(pnlAdicional) then
+      pnlAdicional.Visible := True;
+
+    // Move para o próximo registro
+    cdsAdicional.Next;
+  end;
 end;
 
 procedure Tfrelpagamento.RLBand1BeforePrint(Sender: TObject;

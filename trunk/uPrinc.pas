@@ -357,7 +357,7 @@ begin
 
   MensagemMemo('Balança pronta.', 'Coloque o seu prato!','', clLime, 0, 0);
 
-  vrPeso.Caption := '0.00 kg';
+  vrPeso.Caption := '0,000 kg';
   vrProd.Caption := 'R$ 0,00';
 
   Application.Title := 'Balança Automatica';
