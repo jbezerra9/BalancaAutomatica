@@ -94,14 +94,14 @@ var
   vArquivo: String;
   vArquivoIni : TIniFile;
 begin
-     vArquivo := ExtractFilePath(Application.ExeName) + 'servidorBalanca.ini';
+     vArquivo := ExtractFilePath(Application.ExeName) + 'servidor.ini';
 
      if not FileExists(vArquivo) then
      begin
           try
                Application.CreateForm(tFrMensagem,FrMensagem);
                FrMensagem.sMensagem := 'Não foi possível conectar no banco de dados.'+#13+
-                                       'Arquivo de configuração "servidorBalanca.ini" não encontrado na pasta do sistema.';
+                                       'Arquivo de configuração "servidor.ini" não encontrado na pasta do sistema.';
                FrMensagem.pnlMensagem.Font.Size := 20;
                FrMensagem.ShowModal();
           finally

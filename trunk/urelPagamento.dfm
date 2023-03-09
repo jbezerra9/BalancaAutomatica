@@ -32,6 +32,7 @@ object frelpagamento: Tfrelpagamento
     PageSetup.PaperWidth = 80.000000000000000000
     PageSetup.PaperHeight = 300.000000000000000000
     PrintDialog = False
+    ShowProgress = False
     object RLBand2: TRLBand
       Left = 0
       Top = 0
