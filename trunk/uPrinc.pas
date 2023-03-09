@@ -9,6 +9,9 @@ uses
   ACBrBase, ACBrBAL, Vcl.StdCtrls, Data.DB, Data.FMTBcd, Data.SqlExpr,
   Datasnap.DBClient, RLReport, Vcl.Buttons, ACBrDeviceSerial, Datasnap.Provider;
 
+Const
+  InputBoxMessage = WM_USER + 200;
+
 type
   TfPrinc = class(TForm)
     pnlTitulo: TPanel;
@@ -75,12 +78,13 @@ type
   private
     { Private declarations }
     vrvenda: Double;
-    BalancaPronta : Boolean;
-    comandaInicial, comandaFinal : String;
+    BalancaPronta, passouLimite : Boolean;
+    sCodProd, sCodProdSub, comandaInicial, comandaFinal : String;
     PesoAnterior: Double;
     precoKG     : Double;
-    vrtot       : Double;
+    vrtot, pesolimite : Double;
     procedure MensagemMemo(sHead, sTitulo, sCorpo : string; iCor : integer; sPeso : double; pausa : Cardinal);
+    procedure InputBoxSetPasswordChar(var Msg: TMessage); message InputBoxMessage;
     procedure ConfiguraBal;
     procedure ConsultaCaixa;
     procedure zeraGerador;
@@ -92,11 +96,12 @@ type
 
 var
   fPrinc: TfPrinc;
-  codUsuario: Integer;
-  nomUsuario, sUserFunc, codCaixa, datasenha: String;
-  sAcessoUsuario: String;
-  sAcessoSenha: String;
-  sCodProd: String;
+  codUsuario : integer;
+  nomUsuario : string;
+
+  sAcessoUsuario : string;
+  sAcessoSenha  : string;
+  sUserFunc, codCaixa, datasenha: string;
 
 implementation
 
@@ -104,6 +109,18 @@ implementation
 
 uses uFuncoes, uModulo, Utransacao, uMensagem, upesqcad, urelPagamento,
   uselecionaprod;
+
+procedure TfPrinc.InputBoxSetPasswordChar(var Msg: TMessage);
+var
+     hInputForm, hEdit: HWND;
+begin
+     hInputForm := Screen.Forms[0].Handle;
+     if (hInputForm <> 0) then
+     begin
+          hEdit := FindWindowEx(hInputForm, 0, 'TEdit', nil);
+          SendMessage(hEdit, EM_SETPASSWORDCHAR, Ord('*'), 0);
+     end;
+end;
 
 procedure TfPrinc.zeraGerador;
 begin
@@ -153,7 +170,7 @@ begin
 
       FACBrBal.Ativar;
 
-      FACBrBAL.EnviarPrecoKg(vrVenda, 2000);
+      FACBrBAL.EnviarPrecoKg(vrVenda, TimeOut);
     except
       Application.MessageBox('Falha ao enviar preço/KG para a balança!', 'Atenção', mb_ok + mb_iconerror);
       exit;
@@ -162,7 +179,7 @@ begin
     FACBrBal.Desativar;
 
     FACBrBAL.Modelo           := TACBrBALModelo(dm.FiniParam.ReadInteger('Balanca1','Modelo',2));
-    FACBrBAL.Device.Porta     := dm.FiniParam.ReadString('Balanca1','Porta','COM1');
+    FACBrBAL.Device.Porta     := dm.FiniParam.ReadString('Balanca1','Porta','COM2');
     FACBrBAL.Device.Baud      := StrToInt(dm.FiniParam.ReadString('Balanca1','BaudRate','2400'));
     FACBrBAL.Device.Data      := StrToInt(dm.FiniParam.ReadString('Balanca1','DataBits','8'));
     FACBrBAL.Device.Parity    := TACBrSerialParity(dm.FiniParam.ReadInteger('Balanca1','Paridade',0));
@@ -182,7 +199,12 @@ begin
       mMensagem.Lines.Add(sTitulo);
       mMensagem.Lines.Add(sCorpo);
 
-      vrPeso.Caption := Format('%.3f kg', [sPeso]);
+      if passouLimite and (sCodProdSub <> '') then
+        vrPeso.Caption := Format('%.2f Un', [sPeso])
+
+      else
+        vrPeso.Caption := Format('%.3f kg', [sPeso]);
+
       vrProd.Caption := FormatFloat('R$ #,##0.00', sPeso * vrVenda);
 
       if pausa > 0 then
@@ -196,13 +218,13 @@ begin
 end;
 
 function TfPrinc.lerBalanca(Peso: Double): Boolean;
-var codProdSalva1, codProdSalva2, descricao : String;
-    vrunit : double;
+var codProdSalva1, codProdSalva2, descricao, vrVendaMemo: String;
+    vrunit, qtd : double;
 begin
-  if (Arredondar(Peso,3) = Arredondar(PesoAnterior,3))
-  or (Arredondar(Peso,3) = Arredondar(PesoAnterior + 0.002,3))
-  or (Arredondar(Peso,3) = Arredondar(PesoAnterior - 0.002,3))
-  or (Arredondar(Peso,3) < Arredondar(strToFloat('0,020'),3)) then
+  if (Arredondar(Peso, 3) = Arredondar(PesoAnterior, 3))
+  or (Arredondar(Peso, 3) = Arredondar(PesoAnterior + 0.002, 3))
+  or (Arredondar(Peso, 3) = Arredondar(PesoAnterior - 0.002, 3))
+  or (Arredondar(Peso, 3) < Arredondar(strToFloat('0,020'), 3)) then
     Exit;
 
   if not BalancaPronta then
@@ -215,9 +237,9 @@ begin
   MensagemMemo(' ', 'Aguarde', 'Lendo balança...', clYellow, 0, 3);
 
   sqlcon.Close;
-  sqlcon.SQL.Text := 'select tbprod.descricao as descProd, ' +
-                     'tbprod.pVendaa as vrUnit,  ' +
-                     'tbunmed.descricao as un ' + 'from tbprod ' +
+  sqlcon.SQL.Text := 'select tbprod.descricao as descProd, tbprod.pVendaa as vrUnit,' +
+                     ' tbunmed.descricao as un ' +
+                     'from tbprod ' +
                      'left join tbunmed on tbunmed.codigo = tbprod.unmed ' +
                      'where tbprod.codigo = ' + sCodProd;
   sqlcon.Open;
@@ -225,23 +247,60 @@ begin
   if sqlcon.IsEmpty then
     Exit;
 
-  vrtot    := sqlcon.FieldByName('vrUnit').AsFloat * peso;
-  vrunit    := sqlcon.FieldByName('vrUnit').AsFloat;
-  descricao := sqlcon.FieldByName('descProd').AsString;
-
-  codProdSalva1 := sCodProd;
-
-  if (Parametro('TIPO_PESQ_CODPROD') = 'I')
-  or (Parametro('TIPO_PESQ_CODPROD') = 'P') then
+  if (peso > pesolimite) and (sCodProdSub <> '') then
   begin
-       sCodProd := codProdSalva1;
-       codProdSalva2     := '';
+    passouLimite := true;
+
+    sqlcon.Close;
+    sqlcon.SQL.Text := 'select tbprod.descricao as descProd, ' +
+                       ' tbprod.pVendaa as vrUnit ' +
+                       ' from tbprod ' +
+                       ' where tbprod.codigo = ' + quotedStr(sCodProdSub);
+    sqlcon.Open;
+
+    vrunit    := sqlcon.FieldByName('vrUnit').AsFloat;
+    vrvenda   := vrunit;
+    descricao := sqlcon.FieldByName('descProd').AsString;
+    vrtot     := vrunit;
+    Peso       := 1;
+
+    codProdSalva1 := scodprodsub;
+
+    if (Parametro('TIPO_PESQ_CODPROD') = 'I')
+    or (Parametro('TIPO_PESQ_CODPROD') = 'P') then
+    begin
+         sCodProdSub := codProdSalva1;
+         codProdSalva2     := '';
+    end
+    else
+         if codProdSalva1 <> sCodProdSub then
+              codProdSalva2 := sCodProdSub
+         else
+              codProdSalva2 := '';
   end
+
   else
-       if codProdSalva1 <> sCodProd then
-            codProdSalva2 := sCodProd
-       else
-            codProdSalva2 := '';
+  begin
+    vrunit    := sqlcon.FieldByName('vrUnit').AsFloat;
+    vrtot     := vrunit * peso;
+    vrvenda   := vrunit;
+    descricao := sqlcon.FieldByName('descProd').AsString;
+    //qtd       := peso;
+
+    codProdSalva1 := sCodProd;
+
+    if (Parametro('TIPO_PESQ_CODPROD') = 'I')
+    or (Parametro('TIPO_PESQ_CODPROD') = 'P') then
+    begin
+         sCodProd := codProdSalva1;
+         codProdSalva2     := '';
+    end
+    else
+         if codProdSalva1 <> sCodProd then
+              codProdSalva2 := sCodProd
+         else
+              codProdSalva2 := '';
+  end;
 
   cdsComandaItem.EmptyDataSet;
 
@@ -277,9 +336,27 @@ begin
 end;
 
 procedure TfPrinc.btSairClick(Sender: TObject);
+var sSenha : string;
 begin
-    Timer1.enabled := false;
-    close;
+     Timer1.enabled := false;
+     sSenha := '';
+
+     PostMessage(Handle, InputBoxMessage, 0, 0);
+     if InputQuery('Senha de acesso','Senha',sSenha) = False then
+     begin
+          Timer1.enabled := true;
+          Exit;
+     end;
+
+     if sSenha <> 'bbifood' then
+     begin
+          Application.MessageBox('Senha inválida.','Atenção',MB_ICONEXCLAMATION);
+          Timer1.enabled := true;
+          Exit;
+     end;
+
+     Timer1.enabled := false;
+     close;
 end;
 
 procedure TfPrinc.FACBrBALLePeso(Peso: Double; Resposta: AnsiString);
@@ -287,6 +364,8 @@ begin
   if Peso <= 0.000 then
   begin
     BalancaPronta := True;
+    passouLimite  := false;
+
     PesoAnterior  := 0.000;
 
     MensagemMemo(' ', 'Balança pronta.', 'Coloque o seu prato!', clLime, 0, 0);
@@ -337,7 +416,10 @@ end;
 
 procedure TfPrinc.FormShow(Sender: TObject);
 begin
-  sCodProd := dm.sCodProd;
+  sCodProd     := dm.sCodProd;
+  sCodProdSub  := dm.sCodprodsub;
+  pesolimite   := dm.peso_limite;
+  passouLimite := false;
 
   dm.tbemp.Open;
   cdsComandaItem.Open;
@@ -352,8 +434,6 @@ begin
     application.Messagebox('Produto invalido!', 'Atenção', mb_iconexclamation);
     Close;
   end;
-
-  vrvenda := sqlcon.FieldByName('pvendaa').AsFloat;
 
   MensagemMemo('Balança pronta.', 'Coloque o seu prato!','', clLime, 0, 0);
 

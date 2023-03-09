@@ -207,8 +207,8 @@ label FinalizaSistema;
 var
      sPerfilAberto : String;
 begin
-     codUsuario:= sqlcon2.FieldByName('usu_codigo').AsInteger;
-     nomUsuario:= sqlcon2.FieldByName('USU_NOME').AsString;
+     codUsuario     := sqlcon2.FieldByName('usu_codigo').AsInteger;
+     nomUsuario     := sqlcon2.FieldByName('USU_NOME').AsString;
 
      sAcessoUsuario := sqlcon2.FieldByName('USU_NOME').AsString;
      sAcessoSenha   := sqlcon2.FieldByName('USU_SENHA').AsString;

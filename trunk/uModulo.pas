@@ -73,7 +73,9 @@ type
     sMsgErro,FVrFuncao,FRedeAdquirente,FcodCaixa,FSerieNfce : string;
     FCancelar,FPagamentoOk : Boolean;
     FHomologaTEF: Boolean;
-    sCodProd : string;
+    sCodProd, sCodprodsub : string;
+    peso_limite : double;
+
     procedure ConectarBancodeDados;
   end;
 

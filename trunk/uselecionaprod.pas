@@ -83,6 +83,13 @@ type
     edComandaIni1: TEdit;
     edComandaFin1: TEdit;
     Label1: TLabel;
+    edpesolimite: TEdit;
+    edcodsub: TEdit;
+    eddescsub: TEdit;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    btpes: TSpeedButton;
     procedure FormShow(Sender: TObject);
     procedure btAnteriorClick(Sender: TObject);
     procedure btProxClick(Sender: TObject);
@@ -97,19 +104,26 @@ type
     procedure btTestePesoClick(Sender: TObject);
     procedure ACBrBALLePeso(Peso: Double; Resposta: AnsiString);
     procedure edPrecoKGKeyPress(Sender: TObject; var Key: Char);
-    procedure SpeedButton1Click(Sender: TObject);
     procedure edComandaIni1KeyPress(Sender: TObject; var Key: Char);
     procedure edComandaFin1KeyPress(Sender: TObject; var Key: Char);
+    procedure edcodsubKeyPress(Sender: TObject; var Key: Char);
+    procedure edcodsubChange(Sender: TObject);
+    procedure btpesClick(Sender: TObject);
+    procedure edpesolimiteKeyPress(Sender: TObject; var Key: Char);
+    procedure edpesolimiteExit(Sender: TObject);
+    procedure edcodsubExit(Sender: TObject);
   private
     { Private declarations }
     ultBtnProd: String;
     pagProd, TimeOut, ultPagGrup, limitGrup, nColunasProd, skip: integer;
     procedure InputBoxSetPasswordChar(var Msg: TMessage); message InputBoxMessage;
+    function ConfiguraBal(vrVenda : double) : boolean;
     procedure CriaBotoesProdutos(sTipo : String);
     procedure ConfigComponenteBalanca;
     procedure CarregaBal;
     procedure ClickBtnProduto(Sender: TObject);
     procedure ConsultaCaixa;
+    function Valida_pesolimite : boolean;
   public
     { Public declarations }
 
@@ -117,7 +131,7 @@ type
     bt_Prod_DivHorz  : Integer;
     bt_Prod_Heigth   : Integer;
     bt_Prod_Width    : Integer;
-    bt_Prod_FontName,sCodprod : String;
+    bt_Prod_FontName : String;
     bt_Prod_FontSize : Integer;
 
     bt_Prod_MaxCaracteres : Integer;
@@ -137,7 +151,71 @@ implementation
 
 {$R *.dfm}
 
-uses uFuncoes, uModulo, uPrinc;
+uses uFuncoes, uModulo, uPrinc, upesqcad;
+
+function tfselecionaprod.ConfiguraBal(vrVenda : double) : boolean;
+var  timeout : integer;
+begin
+    result := false;
+
+    try
+      ACBrBal.Desativar;
+
+      ACBrBAL.Modelo           := TACBrBALModelo(2);
+      ACBrBAL.Device.Porta     := dm.FiniParam.ReadString('Balanca1','Porta','COM1');
+      ACBrBAL.Device.Baud      := StrToInt(dm.FiniParam.ReadString('Balanca1','BaudRate','2400'));
+      ACBrBAL.Device.Data      := StrToInt(dm.FiniParam.ReadString('Balanca1','DataBits','8'));
+      ACBrBAL.Device.Parity    := TACBrSerialParity(dm.FiniParam.ReadInteger('Balanca1','Paridade',0));
+      ACBrBAL.Device.Stop      := TACBrSerialStop(dm.FiniParam.ReadInteger('Balanca1','StopBits',0));
+      ACBrBAL.Device.HandShake := TACBrHandShake(dm.FiniParam.ReadInteger('Balanca1','HandShaking',0));
+      TimeOut                   := dm.FiniParam.ReadInteger('Balanca1','TimeOut',2000);
+
+      ACBrBal.Ativar;
+
+      ACBrBAL.EnviarPrecoKg(vrVenda, TimeOut);
+      result := true;
+      ACBrBal.Desativar;
+    except
+      Application.MessageBox(pChar('Falha ao enviar preço/KG para a balança!' + #13 +
+                                   'Verifique a conexão da balança com a CPU e tente novamente.'),
+                                   'Atenção', mb_ok + mb_iconerror);
+      result := false;
+      ACBrBal.Desativar;
+      exit;
+    end;
+end;
+
+function tfselecionaprod.Valida_pesolimite : boolean;
+begin
+     if  (strfToCurr(edpesolimite.text) <= 0)
+     and (eddescsub.text <> '')  then
+     begin
+          if strfToCurr(edpesolimite.text) <= 0  then
+          begin
+               Result := false;
+               Application.MessageBox('O peso limite informado é inválido!',
+                    'Atenção',MB_ICONEXCLAMATION);
+               edcodsub.SetFocus;
+               Exit;
+          end;
+     end
+
+     else
+     if  (strfToCurr(edpesolimite.text) > 0)
+     and ((eddescsub.text = '') or (edcodsub.text = '') or (StrToFloat(edcodsub.text) = 0 )) then
+     begin
+           Result := false;
+           Application.MessageBox('Insira um código válido para produto substituto!',
+                'Atenção',MB_ICONEXCLAMATION);
+           edcodsub.SetFocus;
+           Exit;
+     end;
+
+     dm.sCodprodsub := edcodsub.Text;
+     dm.peso_limite := strFToCurr(edpesolimite.Text);
+
+     Result := true;
+end;
 
 procedure TfSelecionaProd.ConsultaCaixa;
 begin
@@ -362,6 +440,49 @@ begin
      Key := #0 ;
 end;
 
+procedure TfSelecionaProd.edpesolimiteExit(Sender: TObject);
+begin
+  if edpesolimite.text <> '' then
+      edpesolimite.text := FormatCurr('#,###0.000', Strftocurr(edpesolimite.Text));
+end;
+
+procedure TfSelecionaProd.edpesolimiteKeyPress(Sender: TObject; var Key: Char);
+begin
+	if not (key in ['0'..'9', #13, #8]) then
+     	exit;
+end;
+
+procedure TfSelecionaProd.edcodsubChange(Sender: TObject);
+begin
+    if (Length(edcodsub.Text) >= 3) and
+        (Length(edcodsub.Text) < 6) then
+     begin
+          try
+               StrToInt(edcodsub.Text);
+          except
+               eddescsub.Text := edcodsub.Text;
+               btpesClick(btpes);
+          end;
+     end;
+
+     if trim(edcodsub.Text) = '' then
+        eddescsub.Text := '';
+end;
+procedure TfSelecionaProd.edcodsubExit(Sender: TObject);
+begin
+  if edcodsub.text <> '' then
+      edcodsub.text := FormatCurr('000000', Strftocurr(edcodsub.Text));
+end;
+
+procedure TfSelecionaProd.edcodsubKeyPress(Sender: TObject; var Key: Char);
+begin
+	if not (key in ['0'..'9', #13, #8]) then
+     	exit;
+
+  if key = #13 then
+      btpesClick(btpes);
+end;
+
 procedure TfSelecionaProd.edComandaFin1KeyPress(Sender: TObject; var Key: Char);
 begin
   if not (Key in ['0'..'9',#13,#8]) then
@@ -546,6 +667,37 @@ begin
      end;
 end;
 
+procedure TfSelecionaProd.btpesClick(Sender: TObject);
+begin
+     dm.cdspesqcad.indexfieldnames := '';
+     dm.cdspesqcad.close;
+     dm.cdspesqcad.commandtext := 'select codigo, descricao from tbprod order by descricao asc';
+     dm.cdspesqcad.open;
+     dm.cdspesqcad.indexfieldnames := 'descricao';
+
+     application.createform(tfpesqcad,fpesqcad);
+     fpesqcad.dbgpes.columns.rebuildcolumns;
+     fpesqcad.dbgpes.columns[0].fieldname := 'descricao';
+     fpesqcad.dbgpes.columns[0].title.caption := 'Descrição';
+     fpesqcad.dbgpes.columns[1].fieldname := 'codigo';
+     fpesqcad.dbgpes.columns[1].visible := false;
+     FPesqcad.edpes.CharCase := eddescsub.CharCase;
+     fpesqcad.edpes.text := lers(eddescsub.text);
+     FPesqcad.edPesSelectAll := False;
+     fpesqcad.lbpes.caption := 'Descrição:';
+     fpesqcad.showmodal;
+
+     if fpesqcad.tag = 1 then
+     begin
+          edcodsub.text := lers(dm.cdspesqcad['codigo']);
+          eddescsub.text := lers(dm.cdspesqcad['descricao']);
+     end;
+
+     FreeAndNil(FPesqcad);
+
+     eddescsub.setfocus;
+end;
+
 procedure TfSelecionaProd.btProxClick(Sender: TObject);
 begin
       pagProd := pagProd + 1;
@@ -643,8 +795,7 @@ begin
 end;
 
 procedure TfSelecionaProd.cbQtdBalancaChange(Sender: TObject);
-var i : TACBrBALModelo;
-    x : integer;
+var  x : integer;
 begin
      cbBalanca.Clear;
      for x := 1 to cbQtdBalanca.ItemIndex + 1 do
@@ -658,6 +809,9 @@ var sql : string;
 begin
      if pnlProdutos.Tag = 1 then
           Exit;
+
+     if not Valida_pesolimite then
+        exit;
 
      ConsultaCaixa;
 
@@ -684,7 +838,10 @@ begin
      sqlaux.SQL.Text := sql;
      sqlaux.Open;
 
-     dm.sCodProd := AnsiReplaceStr(ultBtnProd,'btProd','');
+     dm.sCodProd    := AnsiReplaceStr(ultBtnProd,'btProd','');
+
+     if ConfiguraBal(sqlaux.FieldByName('pvendaa').AsFloat) = false then
+        exit;
 
      try
           Application.CreateForm(TfPrinc, fPrinc);
@@ -788,17 +945,5 @@ begin
      edValorUnitarioTeste.Enabled    := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
      btTestarValorUnitario.Enabled   := (rgUsaBalanca.ItemIndex = 0) and (cbEVrUnit.Checked);
 end;
-
-procedure TfSelecionaProd.SpeedButton1Click(Sender: TObject);
-begin
-     try
-          ACBrBAL.Desativar;
-          Application.CreateForm(TfPrinc, fPrinc);
-          Fprinc.ShowModal;
-     finally
-          FreeAndNil(fprinc);
-     end;
-end;
-
 end.
 

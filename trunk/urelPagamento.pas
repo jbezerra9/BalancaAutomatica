@@ -169,7 +169,7 @@ begin
         // Se a Label foi encontrada, configura a propriedade "Visible" para True
         if Assigned(rlAdicional) then
         begin
-          rlAdicional.Caption := LeftStr(cdsAdicionalDESCRICAO.AsString, 14);
+          rlAdicional.Caption := LeftStr(cdsAdicionalDESCRICAO.AsString, 15);
           k := k + 1;
         end
         else
@@ -180,13 +180,7 @@ begin
         if not (k mod 2 = 0) then
            rbAdicionais.Height := rbAdicionais.Height + 31;
 
-         //comentado bloco que pintava 'nomeDoProduto______|
-        {for j := Length(rlAdicional.Caption) to 18 do
-          sEspacos := sEspacos + '_';
-
-        sEspacos := sEspacos + '|';}
-
-        rlAdicional.Caption := rlAdicional.Caption + sEspacos;
+        rlAdicional.Caption := '___' + rlAdicional.Caption;
 
         // Move para o próximo registro
         cdsAdicional.Next;

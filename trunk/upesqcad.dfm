@@ -102,7 +102,7 @@ object FPesqcad: TFPesqcad
       Width = 659
       Height = 169
       Align = alClient
-      Color = 10778447
+      Color = 16767889
       Ctl3D = False
       DataSource = dm.dspesqcad
       Font.Charset = ANSI_CHARSET

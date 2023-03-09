@@ -16,7 +16,7 @@ object frelpagamento: Tfrelpagamento
   object RLReport1: TRLReport
     Left = 8
     Top = 8
-    Width = 359
+    Width = 302
     Height = 1134
     Margins.LeftMargin = 0.000000000000000000
     Margins.TopMargin = 0.000000000000000000
@@ -29,13 +29,13 @@ object frelpagamento: Tfrelpagamento
     Font.Name = 'Arial'
     Font.Style = []
     PageSetup.PaperSize = fpCustom
-    PageSetup.PaperWidth = 95.000000000000000000
+    PageSetup.PaperWidth = 80.000000000000000000
     PageSetup.PaperHeight = 300.000000000000000000
     PrintDialog = False
     object RLBand2: TRLBand
       Left = 0
       Top = 0
-      Width = 340
+      Width = 283
       Height = 33
       BandType = btHeader
       Borders.Sides = sdCustom
@@ -61,7 +61,7 @@ object frelpagamento: Tfrelpagamento
     object RLBand4: TRLBand
       Left = 0
       Top = 73
-      Width = 340
+      Width = 283
       Height = 20
       BandType = btTitle
       Borders.Sides = sdCustom
@@ -112,7 +112,7 @@ object frelpagamento: Tfrelpagamento
     object RLBand5: TRLBand
       Left = 0
       Top = 186
-      Width = 340
+      Width = 283
       Height = 164
       BandType = btSummary
       Borders.Sides = sdCustom
@@ -185,7 +185,7 @@ object frelpagamento: Tfrelpagamento
     object RLBand1: TRLBand
       Left = 0
       Top = 93
-      Width = 340
+      Width = 283
       Height = 25
       BeforePrint = RLBand1BeforePrint
       object RLDBText2: TRLDBText
@@ -238,7 +238,7 @@ object frelpagamento: Tfrelpagamento
     object RLBand3: TRLBand
       Left = 0
       Top = 33
-      Width = 340
+      Width = 283
       Height = 40
       BandType = btHeader
       Borders.Sides = sdCustom
@@ -292,7 +292,7 @@ object frelpagamento: Tfrelpagamento
     object RLBand6: TRLBand
       Left = 0
       Top = 119
-      Width = 340
+      Width = 283
       Height = 67
       Borders.Sides = sdCustom
       Borders.DrawLeft = False
@@ -300,10 +300,10 @@ object frelpagamento: Tfrelpagamento
       Borders.DrawRight = False
       Borders.DrawBottom = False
       object RLDBBarcode1: TRLDBBarcode
-        Left = 34
-        Top = 18
-        Width = 198
-        Height = 37
+        Left = 3
+        Top = 10
+        Width = 260
+        Height = 47
         Margins.LeftMargin = 1.000000000000000000
         Margins.RightMargin = 1.000000000000000000
         Alignment = taCenter
@@ -316,13 +316,14 @@ object frelpagamento: Tfrelpagamento
         Font.Height = -33
         Font.Name = 'Arial'
         Font.Style = []
+        Module = 2
         ParentFont = False
       end
     end
     object rbAdicionais: TRLBand
       Left = 0
       Top = 118
-      Width = 340
+      Width = 283
       Height = 1
       BeforePrint = rbAdicionaisBeforePrint
       object pnlAdicional1: TRLPanel
